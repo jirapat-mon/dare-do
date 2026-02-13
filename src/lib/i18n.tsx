@@ -160,6 +160,45 @@ const translations = {
     "streak.days": "วัน",
     "streak.multiplier": "x{mult} Points",
 
+    // Friends
+    "nav.friends": "เพื่อน",
+    "friends.title": "เพื่อน",
+    "friends.search": "ค้นหาเพื่อน (อีเมล)",
+    "friends.add": "เพิ่มเพื่อน",
+    "friends.pending": "รอตอบรับ",
+    "friends.requests": "คำขอเป็นเพื่อน",
+    "friends.accept": "ตอบรับ",
+    "friends.reject": "ปฏิเสธ",
+    "friends.noFriends": "ยังไม่มีเพื่อน",
+    "friends.activity": "กิจกรรมเพื่อน",
+
+    // Province
+    "nav.province": "แผนที่",
+    "province.title": "แผนที่จังหวัด",
+    "province.heatmap": "Heatmap คะแนนทั้งประเทศ",
+    "province.myProvince": "จังหวัดของคุณ",
+    "province.ranking": "อันดับจังหวัด",
+    "province.selectProvince": "เลือกจังหวัด",
+    "province.totalPoints": "คะแนนรวม",
+    "province.totalUsers": "จำนวนผู้ใช้",
+    "province.avgPoints": "คะแนนเฉลี่ย",
+    "province.noProvince": "กรุณาเลือกจังหวัดของคุณ",
+    "province.topUsers": "ผู้ใช้อันดับต้นในจังหวัด",
+    "province.yourRank": "อันดับของคุณในจังหวัด",
+
+    // Stake/Escrow
+    "stake.title": "เงินมัดจำ",
+    "stake.amount": "จำนวนเงินมัดจำ (บาท)",
+    "stake.min": "ขั้นต่ำ ฿100",
+    "stake.balance": "ยอดเงินในกระเป๋า",
+    "stake.locked": "เงินที่ล็อคอยู่",
+    "stake.available": "ยอดถอนได้",
+    "stake.escrow": "เงินในสัญญา",
+    "stake.successReturn": "ทำสำเร็จ: ได้คืน 100% + bonus จาก winner pool",
+    "stake.failLose": "ไม่สำเร็จ: เสียเงินทั้งหมด",
+    "stake.topup": "เติมเงิน",
+    "stake.noBalance": "เงินไม่พอ กรุณาเติมเงินก่อน",
+
     // Payment
     "payment.title": "ชำระเงินมัดจำ",
     "payment.back": "ย้อนกลับ",
@@ -338,6 +377,45 @@ const translations = {
     "streak.fire": "Streak",
     "streak.days": "days",
     "streak.multiplier": "x{mult} Points",
+
+    // Friends
+    "nav.friends": "Friends",
+    "friends.title": "Friends",
+    "friends.search": "Search friends (email)",
+    "friends.add": "Add Friend",
+    "friends.pending": "Pending",
+    "friends.requests": "Friend Requests",
+    "friends.accept": "Accept",
+    "friends.reject": "Reject",
+    "friends.noFriends": "No friends yet",
+    "friends.activity": "Friend Activity",
+
+    // Province
+    "nav.province": "Map",
+    "province.title": "Province Map",
+    "province.heatmap": "Nationwide Points Heatmap",
+    "province.myProvince": "Your Province",
+    "province.ranking": "Province Ranking",
+    "province.selectProvince": "Select Province",
+    "province.totalPoints": "Total Points",
+    "province.totalUsers": "Total Users",
+    "province.avgPoints": "Avg Points",
+    "province.noProvince": "Please select your province",
+    "province.topUsers": "Top Users in Province",
+    "province.yourRank": "Your Province Rank",
+
+    // Stake/Escrow
+    "stake.title": "Stakes",
+    "stake.amount": "Stake Amount (Baht)",
+    "stake.min": "Minimum ฿100",
+    "stake.balance": "Wallet Balance",
+    "stake.locked": "Locked in Contracts",
+    "stake.available": "Available Balance",
+    "stake.escrow": "In Escrow",
+    "stake.successReturn": "Success: Get 100% back + bonus from winner pool",
+    "stake.failLose": "Fail: Lose your entire stake",
+    "stake.topup": "Top Up",
+    "stake.noBalance": "Insufficient balance. Please top up first.",
 
     // Payment
     "payment.title": "Pay Deposit",

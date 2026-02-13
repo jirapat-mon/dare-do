@@ -51,6 +51,8 @@ export async function GET() {
         points: wallet.points,
         streak: wallet.streak,
         lastActiveAt: wallet.lastActiveAt,
+        balance: wallet.balance,
+        lockedBalance: wallet.lockedBalance,
       },
       subscription: {
         tier: user?.subscriptionTier || "free",

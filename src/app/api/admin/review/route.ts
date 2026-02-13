@@ -156,6 +156,27 @@ export async function POST(request: NextRequest) {
               },
             });
           }
+
+          // Escrow settlement — return 95% of stakes on success
+          if (updatedContract.stakes > 0) {
+            const returnAmount = Math.floor(updatedContract.stakes * 0.95 * 100) / 100;
+            await tx.wallet.update({
+              where: { id: wallet.id },
+              data: {
+                balance: { increment: returnAmount },
+                lockedBalance: { decrement: updatedContract.stakes },
+              },
+            });
+            await tx.transaction.create({
+              data: {
+                walletId: wallet.id,
+                contractId: submission.contractId,
+                type: "stake_returned",
+                amount: returnAmount,
+                description: `Contract success: ฿${returnAmount} returned`,
+              },
+            });
+          }
         }
 
         // --- Badge checks ---
@@ -210,10 +231,38 @@ export async function POST(request: NextRequest) {
           badgesAwarded: badgesToAward,
         };
       } else if (status === "rejected") {
-        await tx.contract.update({
+        const failedContract = await tx.contract.update({
           where: { id: submission.contractId },
           data: { status: "failed" },
         });
+
+        // Escrow settlement — forfeit stakes on failure
+        if (failedContract.stakes > 0) {
+          const userId = failedContract.userId;
+          let wallet = await tx.wallet.findUnique({ where: { userId } });
+          if (!wallet) {
+            wallet = await tx.wallet.create({
+              data: { userId, points: 0, streak: 0 },
+            });
+          }
+
+          await tx.wallet.update({
+            where: { id: wallet.id },
+            data: {
+              lockedBalance: { decrement: failedContract.stakes },
+            },
+          });
+          await tx.transaction.create({
+            data: {
+              walletId: wallet.id,
+              contractId: submission.contractId,
+              type: "stake_forfeited",
+              amount: -failedContract.stakes,
+              description: `Contract failed: ฿${failedContract.stakes} forfeited`,
+            },
+          });
+        }
+
         return { pointsEarned: 0, newStreak: 0, contractCompleted: false, badgesAwarded: [] };
       }
 

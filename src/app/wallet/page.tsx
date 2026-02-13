@@ -10,7 +10,6 @@ import RankBadge from "@/components/RankBadge";
 import {
   getStreakLevel,
   INSURANCE_COST,
-  INSURANCE_LIMIT,
   STREAK_THRESHOLD,
   STREAK_MULTIPLIER,
   type SubscriptionTier,
@@ -140,12 +139,14 @@ function WalletContent() {
     }
   };
 
+  const tier = (subscription?.tier || "free") as SubscriptionTier;
+
   // Fetch insurance info when selected contract changes
   useEffect(() => {
     if (selectedContractId && tier !== "free") {
       fetchInsuranceInfo(selectedContractId);
     }
-  }, [selectedContractId]);
+  }, [selectedContractId, tier]);
 
   const fetchInsuranceInfo = async (contractId: string) => {
     try {
@@ -285,7 +286,6 @@ function WalletContent() {
     );
   }
 
-  const tier = (subscription?.tier || "free") as SubscriptionTier;
   const badge = getTierBadge(tier);
   const streakLevel = getStreakLevel(currentStreak);
   const lifetimePoints = gamStats?.lifetimePoints || 0;

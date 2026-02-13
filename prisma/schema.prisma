@@ -13,6 +13,7 @@ model User {
   name                 String?
   role                 String    @default("user") // user, admin
   lifetimePoints       Int       @default(0) // total points earned (never decreases, used for rank)
+  province             String?   // Thai province code e.g. "BKK", "CNX"
   // Subscription
   subscriptionTier     String    @default("free") // free, starter, pro
   stripeCustomerId     String?   @unique
@@ -24,12 +25,16 @@ model User {
   contracts            Contract[]
   redemptions          RewardRedemption[]
   badges               UserBadge[]
+  friendshipsSent      Friendship[] @relation("FriendshipSent")
+  friendshipsReceived  Friendship[] @relation("FriendshipReceived")
 }
 
 model Wallet {
   id               String             @id @default(cuid())
   userId           String             @unique
   user             User               @relation(fields: [userId], references: [id])
+  balance          Float              @default(0) // available money (THB)
+  lockedBalance    Float              @default(0) // money locked in active contracts
   points           Int                @default(0)
   streak           Int                @default(0)
   lastActiveAt     DateTime?
@@ -51,15 +56,16 @@ model Transaction {
 }
 
 model Contract {
-  id            String        @id @default(cuid())
-  userId        String
-  user          User          @relation(fields: [userId], references: [id])
-  goal          String
-  duration      Int
-  deadline      String // HH:mm daily deadline
-  status        String        @default("active") // active, success, failed
-  daysCompleted Int           @default(0)
-  createdAt        DateTime         @default(now())
+  id               String             @id @default(cuid())
+  userId           String
+  user             User               @relation(fields: [userId], references: [id])
+  goal             String
+  duration         Int
+  deadline         String             // HH:mm daily deadline
+  stakes           Float              @default(0) // money staked (THB)
+  status           String             @default("active") // active, success, failed
+  daysCompleted    Int                @default(0)
+  createdAt        DateTime           @default(now())
   submissions      Submission[]
   transactions     Transaction[]
   streakInsurances StreakInsurance[]
@@ -157,4 +163,18 @@ model StreakInsurance {
   contractId String
   contract   Contract @relation(fields: [contractId], references: [id])
   usedAt     DateTime @default(now())
+}
+
+// Friendship — social connections between users
+model Friendship {
+  id        String   @id @default(cuid())
+  userId    String   // who sent the request
+  friendId  String   // who received the request
+  status    String   @default("pending") // pending, accepted, rejected
+  createdAt DateTime @default(now())
+
+  user   User @relation("FriendshipSent", fields: [userId], references: [id])
+  friend User @relation("FriendshipReceived", fields: [friendId], references: [id])
+
+  @@unique([userId, friendId])
 }

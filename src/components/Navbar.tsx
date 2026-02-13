@@ -60,6 +60,18 @@ export default function Navbar() {
               >
                 {t("nav.profile")}
               </Link>
+              <Link
+                href="/friends"
+                className="text-gray-400 hover:text-white transition text-sm"
+              >
+                {t("nav.friends")}
+              </Link>
+              <Link
+                href="/province"
+                className="text-gray-400 hover:text-white transition text-sm"
+              >
+                {t("nav.province")}
+              </Link>
               {user?.role === "admin" && (
                 <Link
                   href="/admin"
@@ -169,6 +181,20 @@ export default function Navbar() {
                 className="block text-gray-400 hover:text-white transition py-2"
               >
                 {t("nav.profile")}
+              </Link>
+              <Link
+                href="/friends"
+                onClick={() => setIsMenuOpen(false)}
+                className="block text-gray-400 hover:text-white transition py-2"
+              >
+                {t("nav.friends")}
+              </Link>
+              <Link
+                href="/province"
+                onClick={() => setIsMenuOpen(false)}
+                className="block text-gray-400 hover:text-white transition py-2"
+              >
+                {t("nav.province")}
               </Link>
               {user?.role === "admin" && (
                 <Link
