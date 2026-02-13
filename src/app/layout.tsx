@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_Thai } from "next/font/google";
+import ClientProviders from "@/components/ClientProviders";
 import "./globals.css";
 
 const inter = Inter({
@@ -29,7 +30,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${notoSansThai.variable} font-sans antialiased bg-[#0A0A0A] text-white min-h-screen`}
       >
-        {children}
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );
