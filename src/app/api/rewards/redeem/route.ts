@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/jwt";
-import { prisma } from "@/lib/db";
+import { prisma, type PrismaTransactionClient } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Execute redemption in a transaction
-    const redemption = await prisma.$transaction(async (tx) => {
+    const redemption = await prisma.$transaction(async (tx: PrismaTransactionClient) => {
       // Deduct points from wallet
       await tx.wallet.update({
         where: { id: wallet.id },

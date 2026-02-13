@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/jwt";
-import { prisma } from "@/lib/db";
+import { prisma, type PrismaTransactionClient } from "@/lib/db";
 import Stripe from "stripe";
 
 const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || "";
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       const endsAt = new Date();
       endsAt.setMonth(endsAt.getMonth() + 1);
 
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: PrismaTransactionClient) => {
         await tx.user.update({
           where: { id: session.userId },
           data: {

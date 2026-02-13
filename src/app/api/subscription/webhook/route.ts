@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { prisma, type PrismaTransactionClient } from "@/lib/db";
 import Stripe from "stripe";
 
 const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || "";
@@ -175,7 +175,7 @@ async function handlePaymentSucceeded(invoice: InvoiceData) {
     });
   }
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: PrismaTransactionClient) => {
     await tx.platformWallet.update({
       where: { id: platformWallet.id },
       data: {
