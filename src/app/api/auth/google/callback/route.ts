@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { signToken } from "@/lib/jwt";
+import { signToken, isAdminEmail } from "@/lib/jwt";
 import { hashSync } from "bcryptjs";
 import crypto from "crypto";
 
@@ -61,11 +61,20 @@ export async function GET(request: NextRequest) {
           email: googleUser.email,
           name: googleUser.name || googleUser.email.split("@")[0],
           password: hashSync(randomPassword, 10),
-          role: "user",
+          role: isAdminEmail(googleUser.email) ? "admin" : "user",
           wallet: {
             create: { points: 0, streak: 0 },
           },
         },
+      });
+    }
+
+    // Sync admin role for existing users
+    const expectedRole = isAdminEmail(user.email) ? "admin" : "user";
+    if (user.role !== expectedRole) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { role: expectedRole },
       });
     }
 

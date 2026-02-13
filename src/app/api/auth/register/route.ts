@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
-import { signToken } from "@/lib/jwt";
+import { signToken, isAdminEmail } from "@/lib/jwt";
 import { hashSync } from "bcryptjs";
 
 export async function POST(request: NextRequest) {
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
         email,
         password: hashedPassword,
         name: name || null,
-        role: "user",
+        role: isAdminEmail(email) ? "admin" : "user",
       },
     });
 

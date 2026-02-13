@@ -65,9 +65,9 @@ model Submission {
   id         String   @id @default(cuid())
   contractId String
   contract   Contract @relation(fields: [contractId], references: [id])
-  imageUrl   String
+  imageData  String   @db.Text // base64 encoded image
   note       String?
-  dailyCode  String
+  metadata   String?  @db.Text // JSON: timestamp, device info
   status     String   @default("pending") // pending, approved, rejected
   createdAt  DateTime @default(now())
 }

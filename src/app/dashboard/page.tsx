@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import AuthGuard from "@/components/AuthGuard";
 import { useEffect, useState } from "react";
-import { getDailyCode } from "@/lib/daily-code";
 
 interface Contract {
   id: string;
@@ -35,11 +34,9 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [wallet, setWallet] = useState<WalletData | null>(null);
-  const [dailyCode, setDailyCode] = useState("");
 
   useEffect(() => {
     fetchData();
-    setDailyCode(getDailyCode());
   }, []);
 
   const fetchData = async () => {
@@ -127,12 +124,6 @@ export default function DashboardPage() {
             </p>
           </div>
         )}
-
-        {/* Daily Code Banner */}
-        <div className="bg-gradient-to-r from-orange-600 to-orange-500 rounded-2xl p-5 mb-8">
-          <p className="text-sm text-orange-100">{t("dashboard.dailyCode")}</p>
-          <p className="text-3xl font-mono font-bold text-white">{dailyCode}</p>
-        </div>
 
         {/* Active Contracts */}
         <h2 className="text-xl font-bold mb-4">

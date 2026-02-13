@@ -48,6 +48,14 @@ export default function Navbar() {
               >
                 {t("nav.wallet")}
               </Link>
+              {user?.role === "admin" && (
+                <Link
+                  href="/admin"
+                  className="text-red-400 hover:text-red-300 transition text-sm"
+                >
+                  {t("nav.admin")}
+                </Link>
+              )}
             </>
           )}
           <LanguageToggle />
@@ -136,6 +144,15 @@ export default function Navbar() {
               >
                 {t("nav.wallet")}
               </Link>
+              {user?.role === "admin" && (
+                <Link
+                  href="/admin"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block text-red-400 hover:text-red-300 transition py-2"
+                >
+                  {t("nav.admin")}
+                </Link>
+              )}
               <button
                 onClick={() => {
                   handleLogout();

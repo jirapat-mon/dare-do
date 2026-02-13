@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
 import AuthGuard from "@/components/AuthGuard";
 
 type SubmissionStatus = "pending" | "approved" | "rejected";
@@ -9,9 +11,9 @@ type AdminTab = SubmissionStatus | "revenue";
 
 interface Submission {
   id: string;
-  imageUrl: string;
+  imageData: string;
   note: string | null;
-  dailyCode: string;
+  metadata: string | null;
   status: SubmissionStatus;
   createdAt: string;
   contract: {
@@ -41,6 +43,8 @@ interface RevenueData {
 
 export default function AdminPage() {
   const { t } = useI18n();
+  const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<AdminTab>("pending");
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -155,6 +159,12 @@ export default function AdminPage() {
       minute: "2-digit",
     });
   };
+
+  // Admin access check — redirect non-admin users
+  if (!authLoading && user && user.role !== "admin") {
+    router.push("/dashboard");
+    return null;
+  }
 
   return (
     <AuthGuard>
@@ -355,7 +365,7 @@ export default function AdminPage() {
                   {/* Image */}
                   <div className="bg-[#1A1A1A] w-full h-48 rounded-xl overflow-hidden flex items-center justify-center text-gray-500 mb-3">
                     <img
-                      src={submission.imageUrl}
+                      src={submission.imageData}
                       alt="Evidence"
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -374,9 +384,9 @@ export default function AdminPage() {
                     </div>
                   )}
 
-                  {/* Daily Code */}
-                  <div className="font-mono text-orange-500 text-sm mb-2">
-                    {submission.dailyCode}
+                  {/* Metadata - Live capture badge */}
+                  <div className="text-xs text-green-400 mb-2">
+                    Live Capture ✓
                   </div>
 
                   {/* Submitted At */}

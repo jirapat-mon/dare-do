@@ -11,6 +11,19 @@ export interface JWTPayload {
   role: string;
 }
 
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
+
+export function isAdminEmail(email: string): boolean {
+  return ADMIN_EMAILS.includes(email.toLowerCase());
+}
+
+export async function requireAdmin(): Promise<JWTPayload | null> {
+  const session = await getSession();
+  if (!session) return null;
+  if (!isAdminEmail(session.email)) return null;
+  return session;
+}
+
 export async function signToken(payload: JWTPayload): Promise<string> {
   return new SignJWT(payload as unknown as Record<string, unknown>)
     .setProtectedHeader({ alg: "HS256" })
