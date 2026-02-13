@@ -33,12 +33,12 @@ export async function GET() {
         balance: platformWallet.balance,
         totalRevenue: platformWallet.totalRevenue,
       },
-      subscribers: subscriberCounts.reduce(
+      subscribers: subscriberCounts.reduce<Record<string, number>>(
         (acc, item) => {
           acc[item.subscriptionTier] = item._count.id;
           return acc;
         },
-        {} as Record<string, number>
+        {}
       ),
       transactions,
     });
