@@ -12,6 +12,7 @@ model User {
   password             String
   name                 String?
   role                 String    @default("user") // user, admin
+  lifetimePoints       Int       @default(0) // total points earned (never decreases, used for rank)
   // Subscription
   subscriptionTier     String    @default("free") // free, starter, pro
   stripeCustomerId     String?   @unique
@@ -22,17 +23,19 @@ model User {
   wallet               Wallet?
   contracts            Contract[]
   redemptions          RewardRedemption[]
+  badges               UserBadge[]
 }
 
 model Wallet {
-  id           String        @id @default(cuid())
-  userId       String        @unique
-  user         User          @relation(fields: [userId], references: [id])
-  points       Int           @default(0)
-  streak       Int           @default(0)
-  lastActiveAt DateTime?
-  transactions Transaction[]
-  redemptions  RewardRedemption[]
+  id               String             @id @default(cuid())
+  userId           String             @unique
+  user             User               @relation(fields: [userId], references: [id])
+  points           Int                @default(0)
+  streak           Int                @default(0)
+  lastActiveAt     DateTime?
+  transactions     Transaction[]
+  redemptions      RewardRedemption[]
+  streakInsurances StreakInsurance[]
 }
 
 model Transaction {
@@ -56,9 +59,10 @@ model Contract {
   deadline      String // HH:mm daily deadline
   status        String        @default("active") // active, success, failed
   daysCompleted Int           @default(0)
-  createdAt     DateTime      @default(now())
-  submissions   Submission[]
-  transactions  Transaction[]
+  createdAt        DateTime         @default(now())
+  submissions      Submission[]
+  transactions     Transaction[]
+  streakInsurances StreakInsurance[]
 }
 
 model Submission {
@@ -132,4 +136,25 @@ model RewardRedemption {
   address   String?  // ที่อยู่จัดส่ง
   note      String?
   createdAt DateTime @default(now())
+}
+
+// Achievement Badge — earned by users for milestones
+model UserBadge {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id])
+  badgeKey String // matches BADGES constant in gamification.ts
+  earnedAt DateTime @default(now())
+
+  @@unique([userId, badgeKey])
+}
+
+// Streak Insurance — allows skipping a day without breaking streak
+model StreakInsurance {
+  id         String   @id @default(cuid())
+  walletId   String
+  wallet     Wallet   @relation(fields: [walletId], references: [id])
+  contractId String
+  contract   Contract @relation(fields: [contractId], references: [id])
+  usedAt     DateTime @default(now())
 }

@@ -5,6 +5,18 @@ import AuthGuard from "@/components/AuthGuard";
 import Link from "next/link";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import StreakFire from "@/components/StreakFire";
+import RankBadge from "@/components/RankBadge";
+import {
+  getStreakLevel,
+  INSURANCE_COST,
+  INSURANCE_LIMIT,
+  STREAK_THRESHOLD,
+  STREAK_MULTIPLIER,
+  type SubscriptionTier,
+  type RankDefinition,
+  type StreakLevel,
+} from "@/lib/gamification";
 
 interface Transaction {
   id: string;
@@ -29,6 +41,25 @@ interface SubscriptionData {
   endsAt: string | null;
 }
 
+interface GamificationStats {
+  tier: SubscriptionTier;
+  points: number;
+  lifetimePoints: number;
+  streak: number;
+  rank: RankDefinition;
+  nextRank: RankDefinition | null;
+  rankProgress: number;
+  streakLevel: StreakLevel;
+}
+
+interface Contract {
+  id: string;
+  goal: string;
+  status: string;
+  duration: number;
+  daysCompleted: number;
+}
+
 export default function WalletPage() {
   return (
     <Suspense>
@@ -47,6 +78,18 @@ function WalletContent() {
     null
   );
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [gamStats, setGamStats] = useState<GamificationStats | null>(null);
+  const [contracts, setContracts] = useState<Contract[]>([]);
+  const [selectedContractId, setSelectedContractId] = useState("");
+  const [insuranceLoading, setInsuranceLoading] = useState(false);
+  const [insuranceMsg, setInsuranceMsg] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const [insuranceInfo, setInsuranceInfo] = useState<{
+    remaining: number;
+    limit: number;
+  } | null>(null);
 
   const subscriptionStatus = searchParams.get("subscription");
 
@@ -57,9 +100,11 @@ function WalletContent() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [walletRes, subRes] = await Promise.all([
+      const [walletRes, subRes, statsRes, contractsRes] = await Promise.all([
         fetch("/api/wallet"),
         fetch("/api/subscription/status"),
+        fetch("/api/gamification/stats"),
+        fetch("/api/contracts"),
       ]);
 
       if (walletRes.ok) {
@@ -72,10 +117,47 @@ function WalletContent() {
         const data = await subRes.json();
         setSubscription(data);
       }
+
+      if (statsRes.ok) {
+        const data = await statsRes.json();
+        setGamStats(data);
+      }
+
+      if (contractsRes.ok) {
+        const data = await contractsRes.json();
+        const active = (data.contracts || []).filter(
+          (c: Contract) => c.status === "active"
+        );
+        setContracts(active);
+        if (active.length > 0) {
+          setSelectedContractId(active[0].id);
+        }
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch insurance info when selected contract changes
+  useEffect(() => {
+    if (selectedContractId && tier !== "free") {
+      fetchInsuranceInfo(selectedContractId);
+    }
+  }, [selectedContractId]);
+
+  const fetchInsuranceInfo = async (contractId: string) => {
+    try {
+      const res = await fetch(
+        `/api/gamification/insurance?contractId=${contractId}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setInsuranceInfo({ remaining: data.remaining, limit: data.limit });
+      }
+    } catch {
+      // silently fail
     }
   };
 
@@ -100,6 +182,43 @@ function WalletContent() {
       console.error("Cancel error:", err);
     } finally {
       setCancelLoading(false);
+    }
+  };
+
+  const handleUseInsurance = async () => {
+    if (!selectedContractId) return;
+    setInsuranceLoading(true);
+    setInsuranceMsg(null);
+    try {
+      const res = await fetch("/api/gamification/insurance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contractId: selectedContractId }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setInsuranceMsg({
+          type: "success",
+          text: t({
+            th: "ใช้ Streak Insurance สำเร็จ!",
+            en: "Streak Insurance used successfully!",
+          }),
+        });
+        fetchData();
+        fetchInsuranceInfo(selectedContractId);
+      } else {
+        setInsuranceMsg({
+          type: "error",
+          text: data.error || t({ th: "เกิดข้อผิดพลาด", en: "Error" }),
+        });
+      }
+    } catch {
+      setInsuranceMsg({
+        type: "error",
+        text: t({ th: "เกิดข้อผิดพลาด", en: "Something went wrong" }),
+      });
+    } finally {
+      setInsuranceLoading(false);
     }
   };
 
@@ -146,6 +265,8 @@ function WalletContent() {
         return { icon: "x", color: "bg-orange-500/20 text-orange-500" };
       case "subscription":
         return { icon: "S", color: "bg-purple-500/20 text-purple-500" };
+      case "insurance":
+        return { icon: "🛡️", color: "bg-purple-500/20 text-purple-500" };
       default:
         return null;
     }
@@ -164,8 +285,14 @@ function WalletContent() {
     );
   }
 
-  const tier = subscription?.tier || "free";
+  const tier = (subscription?.tier || "free") as SubscriptionTier;
   const badge = getTierBadge(tier);
+  const streakLevel = getStreakLevel(currentStreak);
+  const lifetimePoints = gamStats?.lifetimePoints || 0;
+  const rankProgress = gamStats?.rankProgress || 0;
+  const nextRank = gamStats?.nextRank;
+  const multiplier =
+    currentStreak >= STREAK_THRESHOLD ? STREAK_MULTIPLIER[tier] : 1;
 
   return (
     <AuthGuard>
@@ -259,8 +386,11 @@ function WalletContent() {
               <div className="flex items-center gap-3">
                 <span className="text-3xl">⭐</span>
                 <div>
-                  <div className="text-2xl font-bold text-orange-500">
-                    {wallet?.points.toLocaleString() || "0"} Points
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-orange-500">
+                      {wallet?.points.toLocaleString() || "0"} Points
+                    </span>
+                    <RankBadge lifetimePoints={lifetimePoints} size="sm" />
                   </div>
                 </div>
               </div>
@@ -271,17 +401,41 @@ function WalletContent() {
                 {t({ th: "แลกรางวัล", en: "Redeem" })}
               </Link>
             </div>
+
+            {/* Multiplier badge */}
+            {multiplier > 1 && (
+              <div
+                className="inline-flex items-center gap-1.5 bg-orange-500/20 text-orange-400 px-3 py-1 rounded-full text-sm font-semibold mb-3"
+                style={{ boxShadow: "0 0 12px rgba(251,146,60,0.3)" }}
+              >
+                <span>🔥</span>
+                <span>
+                  x{multiplier}{" "}
+                  {t({ th: "คะแนนพิเศษ!", en: "Points Active!" })}
+                </span>
+              </div>
+            )}
+
+            {/* Rank progress */}
             <div className="space-y-2">
               <div className="text-sm text-gray-400">
-                {t({
-                  th: "อีก 750 pts ถึง Silver",
-                  en: "750 pts to Silver tier",
-                })}
+                {nextRank ? (
+                  <>
+                    {t({ th: "อีก ", en: "" })}
+                    {(nextRank.minPoints - lifetimePoints).toLocaleString()} pts
+                    {t({
+                      th: ` ถึง ${nextRank.nameEn}`,
+                      en: ` to ${nextRank.nameEn}`,
+                    })}
+                  </>
+                ) : (
+                  t({ th: "แร้งค์สูงสุดแล้ว!", en: "Max rank reached!" })
+                )}
               </div>
               <div className="w-full bg-[#1A1A1A] rounded-full h-2 overflow-hidden">
                 <div
                   className="bg-orange-500 h-full transition-all duration-300"
-                  style={{ width: "62.5%" }}
+                  style={{ width: `${rankProgress}%` }}
                 />
               </div>
             </div>
@@ -295,16 +449,18 @@ function WalletContent() {
               </h2>
               {currentStreak >= 7 && (
                 <div className="bg-orange-500/20 text-orange-500 px-4 py-1 rounded-full text-sm font-semibold">
-                  x1.5 Points Multiplier
+                  x{multiplier} Points Multiplier
                 </div>
               )}
             </div>
-            <div className="text-3xl font-bold mb-6 flex items-center gap-2">
-              <span>🔥</span>
+            <div className="text-3xl font-bold mb-2 flex items-center gap-2">
+              <StreakFire streak={currentStreak} size="md" />
               <span>
-                {currentStreak}{" "}
                 {t({ th: "วันติดต่อกัน", en: "Day Streak" })}
               </span>
+            </div>
+            <div className="text-sm text-gray-400 mb-6">
+              {t({ th: streakLevel.nameTh, en: streakLevel.nameEn })}
             </div>
             <div className="grid grid-cols-7 gap-2">
               {streakDays.map((status, i) => (
@@ -325,6 +481,114 @@ function WalletContent() {
               ))}
             </div>
           </div>
+
+          {/* Streak Insurance Card */}
+          {tier !== "free" ? (
+            <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6 mb-6">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-2xl">🛡️</span>
+                <h2 className="text-xl font-bold">
+                  {t({ th: "Streak Insurance", en: "Streak Insurance" })}
+                </h2>
+              </div>
+              <p className="text-gray-400 text-sm mb-4">
+                {t({
+                  th: `ใช้ ${INSURANCE_COST} points เพื่อพักวันนี้ โดย streak ไม่ reset`,
+                  en: `Use ${INSURANCE_COST} points to skip today without resetting your streak`,
+                })}
+              </p>
+
+              {/* Remaining uses */}
+              {insuranceInfo && (
+                <div className="text-sm text-gray-300 mb-4">
+                  {t({ th: "เหลือ ", en: "Remaining: " })}
+                  <span className="font-semibold text-orange-400">
+                    {insuranceInfo.remaining}/{insuranceInfo.limit}
+                  </span>
+                  {t({ th: " ครั้ง", en: " uses" })}
+                </div>
+              )}
+
+              {/* Contract selector */}
+              {contracts.length > 0 ? (
+                <div className="mb-4">
+                  <select
+                    value={selectedContractId}
+                    onChange={(e) => setSelectedContractId(e.target.value)}
+                    className="w-full bg-[#1A1A1A] border border-[#333] text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 transition"
+                  >
+                    {contracts.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.goal} ({c.daysCompleted}/{c.duration}{" "}
+                        {t({ th: "วัน", en: "days" })})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm mb-4">
+                  {t({
+                    th: "ไม่มี contract ที่ใช้งานอยู่",
+                    en: "No active contracts",
+                  })}
+                </p>
+              )}
+
+              {/* Feedback message */}
+              {insuranceMsg && (
+                <div
+                  className={`text-sm px-4 py-2 rounded-xl mb-4 ${
+                    insuranceMsg.type === "success"
+                      ? "bg-green-500/20 text-green-400"
+                      : "bg-red-500/20 text-red-400"
+                  }`}
+                >
+                  {insuranceMsg.text}
+                </div>
+              )}
+
+              {/* Use Insurance button */}
+              <button
+                onClick={handleUseInsurance}
+                disabled={
+                  insuranceLoading ||
+                  contracts.length === 0 ||
+                  !selectedContractId ||
+                  (wallet?.points || 0) < INSURANCE_COST ||
+                  (insuranceInfo?.remaining || 0) <= 0
+                }
+                className="w-full bg-orange-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-orange-600 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {insuranceLoading
+                  ? t({ th: "กำลังใช้...", en: "Processing..." })
+                  : t({
+                      th: `ใช้ Insurance (${INSURANCE_COST} pts)`,
+                      en: `Use Insurance (${INSURANCE_COST} pts)`,
+                    })}
+              </button>
+            </div>
+          ) : (
+            <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6 mb-6">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-2xl opacity-50">🛡️</span>
+                <h2 className="text-xl font-bold text-gray-500">
+                  {t({ th: "Streak Insurance", en: "Streak Insurance" })}
+                </h2>
+              </div>
+              <p className="text-gray-500 text-sm mb-4">
+                {t({
+                  th: "อัปเกรดเพื่อใช้ Streak Insurance",
+                  en: "Upgrade to use Streak Insurance",
+                })}
+              </p>
+              <Link
+                href="/pricing"
+                className="block text-center bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white px-6 py-3 rounded-full font-semibold transition text-sm"
+              >
+                {t({ th: "ดูแพลน", en: "View Plans" })}
+              </Link>
+            </div>
+          )}
 
           {/* Transaction History (Points Activity) */}
           <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl overflow-hidden">

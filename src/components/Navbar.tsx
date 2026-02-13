@@ -48,6 +48,18 @@ export default function Navbar() {
               >
                 {t("nav.wallet")}
               </Link>
+              <Link
+                href="/leaderboard"
+                className="text-gray-400 hover:text-white transition text-sm"
+              >
+                {t("nav.leaderboard")}
+              </Link>
+              <Link
+                href="/profile"
+                className="text-gray-400 hover:text-white transition text-sm"
+              >
+                {t("nav.profile")}
+              </Link>
               {user?.role === "admin" && (
                 <Link
                   href="/admin"
@@ -143,6 +155,20 @@ export default function Navbar() {
                 className="block text-gray-400 hover:text-white transition py-2"
               >
                 {t("nav.wallet")}
+              </Link>
+              <Link
+                href="/leaderboard"
+                onClick={() => setIsMenuOpen(false)}
+                className="block text-gray-400 hover:text-white transition py-2"
+              >
+                {t("nav.leaderboard")}
+              </Link>
+              <Link
+                href="/profile"
+                onClick={() => setIsMenuOpen(false)}
+                className="block text-gray-400 hover:text-white transition py-2"
+              >
+                {t("nav.profile")}
               </Link>
               {user?.role === "admin" && (
                 <Link
