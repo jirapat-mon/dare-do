@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import AuthGuard from "@/components/AuthGuard";
@@ -23,15 +23,14 @@ export default function SubmitEvidencePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [cameraActive, setCameraActive] = useState(false);
-  const [cameraReady, setCameraReady] = useState(false);
+  const [cameraState, setCameraState] = useState<"idle" | "starting" | "ready">("idle");
   const [cameraError, setCameraError] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
     fetchContracts();
-    return () => stopCamera();
+    return () => cleanupCamera();
   }, []);
 
   const fetchContracts = async () => {
@@ -52,11 +51,20 @@ export default function SubmitEvidencePage() {
     }
   };
 
-  const startCamera = useCallback(async () => {
+  const cleanupCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+  };
+
+  const startCamera = async () => {
     setCameraError("");
-    setCameraReady(false);
+    setCameraState("starting");
+    setCapturedImage("");
+
     try {
-      // Try back camera first, fallback to any camera
+      // Try back camera first, then fallback
       let stream: MediaStream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({
@@ -69,54 +77,82 @@ export default function SubmitEvidencePage() {
           audio: false,
         });
       }
+
+      // Cleanup any previous stream
+      cleanupCamera();
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        // Wait for video to actually be playing with real frames
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play();
-        };
-        videoRef.current.onplaying = () => {
-          // Extra delay to ensure frames are rendering
-          setTimeout(() => setCameraReady(true), 300);
-        };
+
+      const video = videoRef.current;
+      if (!video) {
+        setCameraState("idle");
+        return;
       }
-      setCameraActive(true);
+
+      video.srcObject = stream;
+
+      // Wait for video to be truly ready
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error("Camera timeout")), 10000);
+
+        video.onloadedmetadata = async () => {
+          try {
+            await video.play();
+            clearTimeout(timeout);
+            // Wait a bit for frames to actually render
+            setTimeout(resolve, 500);
+          } catch (playErr) {
+            clearTimeout(timeout);
+            reject(playErr);
+          }
+        };
+
+        video.onerror = () => {
+          clearTimeout(timeout);
+          reject(new Error("Video error"));
+        };
+      });
+
+      setCameraState("ready");
     } catch (err) {
       console.error("Camera error:", err);
+      cleanupCamera();
+      setCameraState("idle");
       setCameraError(
-        t({ th: "ไม่สามารถเปิดกล้องได้ กรุณาอนุญาตการเข้าถึงกล้อง", en: "Cannot access camera. Please allow camera permission." })
+        t({ th: "ไม่สามารถเปิดกล้องได้ กรุณาอนุญาตการเข้าถึงกล้องแล้วลองใหม่", en: "Cannot access camera. Please allow camera permission and try again." })
       );
     }
-  }, [t]);
+  };
 
   const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
+    cleanupCamera();
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
     }
-    setCameraActive(false);
-    setCameraReady(false);
+    setCameraState("idle");
   };
 
   const capturePhoto = () => {
     const video = videoRef.current;
-    if (!video || video.videoWidth === 0 || video.videoHeight === 0) return;
+    if (!video) return;
+
+    const w = video.videoWidth;
+    const h = video.videoHeight;
+    if (w === 0 || h === 0) {
+      setCameraError(t({ th: "กล้องยังไม่พร้อม กรุณารอสักครู่", en: "Camera not ready. Please wait." }));
+      return;
+    }
 
     const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    canvas.width = w;
+    canvas.height = h;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(video, 0, 0, w, h);
     const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
 
-    // Verify we got real image data (not empty/black canvas)
-    if (dataUrl.length < 1000) {
-      setCameraError(
-        t({ th: "ถ่ายรูปไม่สำเร็จ กรุณาลองใหม่", en: "Capture failed. Please try again." })
-      );
+    if (!dataUrl || dataUrl.length < 500) {
+      setCameraError(t({ th: "ถ่ายรูปไม่สำเร็จ กรุณาลองใหม่", en: "Capture failed. Please try again." }));
       return;
     }
 
@@ -171,6 +207,7 @@ export default function SubmitEvidencePage() {
   };
 
   const selectedContract = contracts.find((c) => c.id === selectedContractId);
+  const showVideo = cameraState === "starting" || cameraState === "ready";
 
   return (
     <AuthGuard>
@@ -219,9 +256,54 @@ export default function SubmitEvidencePage() {
             </div>
           )}
 
-          {/* Camera Area */}
+          {/* Camera / Capture Area */}
           <div className="mb-6">
-            {!capturedImage && !cameraActive && (
+            {/* Hidden video element — always in DOM so ref is stable */}
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className={`w-full rounded-2xl border-2 border-orange-500 ${showVideo ? "block" : "hidden"}`}
+              style={{ minHeight: showVideo ? 250 : 0, background: "#000" }}
+            />
+
+            {/* Camera starting overlay */}
+            {cameraState === "starting" && (
+              <div className="relative" style={{ marginTop: -250, height: 250 }}>
+                <div className="absolute inset-0 flex items-center justify-center bg-black/70 rounded-2xl">
+                  <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mb-2"></div>
+                    <p className="text-white text-sm">{t({ th: "กำลังเปิดกล้อง...", en: "Starting camera..." })}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Camera ready — show capture button */}
+            {cameraState === "ready" && (
+              <div className="flex justify-center gap-4 mt-4">
+                <button
+                  onClick={capturePhoto}
+                  className="flex items-center gap-2 bg-orange-500 text-white font-bold px-8 py-3 rounded-full hover:bg-orange-400 transition active:scale-95"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  {t({ th: "ถ่ายรูป", en: "Capture" })}
+                </button>
+                <button
+                  onClick={stopCamera}
+                  className="px-6 py-3 rounded-full border border-[#333] text-gray-400 hover:text-white hover:border-red-500 transition"
+                >
+                  {t({ th: "ยกเลิก", en: "Cancel" })}
+                </button>
+              </div>
+            )}
+
+            {/* Idle — show open camera button */}
+            {cameraState === "idle" && !capturedImage && (
               <button
                 onClick={startCamera}
                 className="w-full min-h-[250px] border-2 border-dashed border-[#333] hover:border-orange-500 rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-colors"
@@ -239,51 +321,7 @@ export default function SubmitEvidencePage() {
               </button>
             )}
 
-            {cameraError && (
-              <div className="mt-4 bg-red-500/20 border border-red-500 text-red-400 rounded-xl px-4 py-3">
-                {cameraError}
-              </div>
-            )}
-
-            {cameraActive && (
-              <div className="relative">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full rounded-2xl border-2 border-orange-500"
-                  style={{ minHeight: 200, background: "#000" }}
-                />
-                {!cameraReady && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-2xl">
-                    <div className="text-center">
-                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mb-2"></div>
-                      <p className="text-white text-sm">{t({ th: "กำลังเปิดกล้อง...", en: "Starting camera..." })}</p>
-                    </div>
-                  </div>
-                )}
-                {cameraReady && (
-                  <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-                    <button
-                      onClick={capturePhoto}
-                      className="w-16 h-16 bg-white rounded-full border-4 border-orange-500 shadow-lg hover:scale-105 transition-transform active:scale-95"
-                    >
-                      <div className="w-12 h-12 bg-orange-500 rounded-full mx-auto" />
-                    </button>
-                  </div>
-                )}
-                <div className="absolute top-3 right-3">
-                  <button
-                    onClick={stopCamera}
-                    className="bg-black/60 text-white rounded-full px-3 py-1 text-sm"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-            )}
-
+            {/* Captured image preview */}
             {capturedImage && (
               <div className="relative">
                 <img
@@ -300,6 +338,13 @@ export default function SubmitEvidencePage() {
                 >
                   {t({ th: "ถ่ายใหม่", en: "Retake" })}
                 </button>
+              </div>
+            )}
+
+            {/* Camera error */}
+            {cameraError && (
+              <div className="mt-4 bg-red-500/20 border border-red-500 text-red-400 rounded-xl px-4 py-3">
+                {cameraError}
               </div>
             )}
           </div>
