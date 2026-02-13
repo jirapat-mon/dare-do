@@ -28,18 +28,17 @@ export async function GET() {
       _count: { id: true },
     });
 
+    const subscribers: Record<string, number> = {};
+    for (const item of subscriberCounts) {
+      subscribers[item.subscriptionTier] = item._count.id;
+    }
+
     return NextResponse.json({
       wallet: {
         balance: platformWallet.balance,
         totalRevenue: platformWallet.totalRevenue,
       },
-      subscribers: subscriberCounts.reduce(
-        (acc: Record<string, number>, item) => {
-          acc[item.subscriptionTier] = item._count.id;
-          return acc;
-        },
-        {} as Record<string, number>
-      ),
+      subscribers,
       transactions,
     });
   } catch (error) {
