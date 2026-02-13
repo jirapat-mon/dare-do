@@ -19,7 +19,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get submission and contract
     const submission = await prisma.submission.findUnique({
       where: { id: submissionId },
       include: { contract: true },
@@ -32,61 +31,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update submission status
-    await prisma.submission.update({
-      where: { id: submissionId },
-      data: { status, note: notes || submission.note },
-    });
-
-    // If approved, increment contract.daysCompleted
-    if (status === "approved") {
-      const updatedContract = await prisma.contract.update({
-        where: { id: submission.contractId },
-        data: { daysCompleted: { increment: 1 } },
+    await prisma.$transaction(async (tx) => {
+      await tx.submission.update({
+        where: { id: submissionId },
+        data: { status, note: notes || submission.note },
       });
 
-      // Check if contract is now complete
-      if (updatedContract.daysCompleted >= updatedContract.duration) {
-        // Mark contract as success
-        await prisma.contract.update({
+      if (status === "approved") {
+        const updatedContract = await tx.contract.update({
           where: { id: submission.contractId },
-          data: { status: "success" },
+          data: { daysCompleted: { increment: 1 } },
         });
 
-        // Refund 95% to wallet
-        const refundAmount = updatedContract.stakes * 0.95;
-
-        // Get or create wallet
-        let wallet = await prisma.wallet.findUnique({
-          where: { userId: updatedContract.userId },
-        });
-
-        if (!wallet) {
-          wallet = await prisma.wallet.create({
-            data: {
-              userId: updatedContract.userId,
-              balance: 0,
-            },
+        // Check if contract is now complete
+        if (updatedContract.daysCompleted >= updatedContract.duration) {
+          await tx.contract.update({
+            where: { id: submission.contractId },
+            data: { status: "success" },
           });
         }
-
-        // Update wallet balance
-        await prisma.wallet.update({
-          where: { id: wallet.id },
-          data: { balance: { increment: refundAmount } },
-        });
-
-        // Create transaction record
-        await prisma.transaction.create({
-          data: {
-            walletId: wallet.id,
-            type: "refund",
-            amount: refundAmount,
-            description: `Contract completed: ${updatedContract.goal}`,
-          },
+      } else if (status === "rejected") {
+        await tx.contract.update({
+          where: { id: submission.contractId },
+          data: { status: "failed" },
         });
       }
-    }
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -66,7 +66,6 @@ export default function DashboardPage() {
     }
   };
 
-  const walletBalance = wallet?.balance || 0;
   const totalPoints = wallet?.points || 0;
   const currentStreak = wallet?.streak || 0;
   const hasMultiplier = currentStreak >= 7;
@@ -91,13 +90,13 @@ export default function DashboardPage() {
 
         {/* Top Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {/* Wallet Card */}
+          {/* Subscription Card */}
           <Link href="/wallet">
             <div className="bg-gradient-to-r from-orange-600 to-orange-500 rounded-2xl p-5 hover:opacity-90 transition cursor-pointer">
-              <p className="text-sm text-orange-100 mb-1">กระเป๋าเงิน</p>
-              <p className="text-3xl font-bold text-white">
-                ฿{walletBalance.toLocaleString()}
+              <p className="text-sm text-orange-100 mb-1">
+                {t({ th: "สมาชิก", en: "Membership" } as any)}
               </p>
+              <p className="text-3xl font-bold text-white">DareDo</p>
             </div>
           </Link>
 
@@ -206,11 +205,8 @@ export default function DashboardPage() {
                     )}
                   </div>
 
-                  {/* Stakes and Points */}
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-lg text-orange-500 font-bold">
-                      ฿{contract.stakes.toLocaleString()}
-                    </p>
+                  {/* Points Earned */}
+                  <div className="flex items-center justify-end mb-4">
                     <p className="text-sm text-orange-400">
                       +{pointsEarned} pts
                     </p>
@@ -220,8 +216,7 @@ export default function DashboardPage() {
                   {contract.status === "success" && (
                     <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 mb-4">
                       <p className="text-sm text-green-400">
-                        🎉 ได้รับเงินคืน ฿{Math.round(contract.stakes * 0.95).toLocaleString()}{" "}
-                        (95%)
+                        {t({ th: "สำเร็จแล้ว!", en: "Completed!" } as any)}
                       </p>
                     </div>
                   )}
@@ -230,7 +225,7 @@ export default function DashboardPage() {
                   {contract.status === "failed" && (
                     <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-4">
                       <p className="text-sm text-red-400">
-                        ❌ เงินมัดจำถูกยึด ฿{contract.stakes.toLocaleString()}
+                        {t({ th: "ไม่สำเร็จ", en: "Failed" } as any)}
                       </p>
                     </div>
                   )}

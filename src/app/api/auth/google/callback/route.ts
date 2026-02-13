@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
           password: hashSync(randomPassword, 10),
           role: "user",
           wallet: {
-            create: { balance: 0, points: 0, streak: 0 },
+            create: { points: 0, streak: 0 },
           },
         },
       });

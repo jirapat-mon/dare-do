@@ -15,7 +15,7 @@ export async function GET() {
       include: {
         transactions: {
           orderBy: { createdAt: "desc" },
-          take: 10,
+          take: 20,
         },
       },
     });
@@ -25,7 +25,6 @@ export async function GET() {
       wallet = await prisma.wallet.create({
         data: {
           userId: session.userId,
-          balance: 0,
           points: 0,
           streak: 0,
           lastActiveAt: new Date(),
@@ -36,13 +35,27 @@ export async function GET() {
       });
     }
 
+    // Fetch user subscription info
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: {
+        subscriptionTier: true,
+        subscriptionStatus: true,
+        subscriptionEndsAt: true,
+      },
+    });
+
     return NextResponse.json({
       wallet: {
         id: wallet.id,
-        balance: wallet.balance,
         points: wallet.points,
         streak: wallet.streak,
         lastActiveAt: wallet.lastActiveAt,
+      },
+      subscription: {
+        tier: user?.subscriptionTier || "free",
+        status: user?.subscriptionStatus || "inactive",
+        endsAt: user?.subscriptionEndsAt,
       },
       transactions: wallet.transactions,
     });

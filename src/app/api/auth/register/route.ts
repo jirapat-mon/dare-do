@@ -54,7 +54,6 @@ export async function POST(request: NextRequest) {
     await prisma.wallet.create({
       data: {
         userId: user.id,
-        balance: 0,
         points: 0,
         streak: 0,
       },

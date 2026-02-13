@@ -3,54 +3,62 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model User {
-  id        String     @id @default(cuid())
-  email     String     @unique
-  password  String
-  name      String?
-  role      String     @default("user") // user, admin
-  createdAt DateTime   @default(now())
-  wallet    Wallet?
-  contracts Contract[]
+  id                   String    @id @default(cuid())
+  email                String    @unique
+  password             String
+  name                 String?
+  role                 String    @default("user") // user, admin
+  // Subscription
+  subscriptionTier     String    @default("free") // free, starter, pro
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?
+  subscriptionStatus   String    @default("inactive") // active, past_due, cancelled, inactive
+  subscriptionEndsAt   DateTime?
+  createdAt            DateTime  @default(now())
+  wallet               Wallet?
+  contracts            Contract[]
+  redemptions          RewardRedemption[]
 }
 
 model Wallet {
   id           String        @id @default(cuid())
   userId       String        @unique
   user         User          @relation(fields: [userId], references: [id])
-  balance      Float         @default(0)
   points       Int           @default(0)
   streak       Int           @default(0)
   lastActiveAt DateTime?
   transactions Transaction[]
+  redemptions  RewardRedemption[]
 }
 
 model Transaction {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   walletId    String
-  wallet      Wallet   @relation(fields: [walletId], references: [id])
-  type        String   // deposit, refund, topup, withdraw, points_redeem, forfeit
+  wallet      Wallet    @relation(fields: [walletId], references: [id])
+  contractId  String?
+  contract    Contract? @relation(fields: [contractId], references: [id])
+  type        String // subscription, points_earned, points_redeemed, streak_bonus
   amount      Float
   description String
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 }
 
 model Contract {
-  id            String       @id @default(cuid())
+  id            String        @id @default(cuid())
   userId        String
-  user          User         @relation(fields: [userId], references: [id])
+  user          User          @relation(fields: [userId], references: [id])
   goal          String
-  stakes        Float
-  fee           Float
   duration      Int
-  deadline      String       // HH:mm daily deadline
-  status        String       @default("active") // active, success, failed
-  daysCompleted Int          @default(0)
-  createdAt     DateTime     @default(now())
+  deadline      String // HH:mm daily deadline
+  status        String        @default("active") // active, success, failed
+  daysCompleted Int           @default(0)
+  createdAt     DateTime      @default(now())
   submissions   Submission[]
+  transactions  Transaction[]
 }
 
 model Submission {
@@ -62,4 +70,66 @@ model Submission {
   dailyCode  String
   status     String   @default("pending") // pending, approved, rejected
   createdAt  DateTime @default(now())
+}
+
+// Platform Digital Wallet — เก็บเงินรายได้จาก subscription
+model PlatformWallet {
+  id           String                @id @default(cuid())
+  balance      Float                 @default(0) // ยอดเงินสะสม
+  totalRevenue Float                 @default(0) // รายได้ทั้งหมด
+  transactions PlatformTransaction[]
+}
+
+model PlatformTransaction {
+  id               String         @id @default(cuid())
+  platformWalletId String
+  platformWallet   PlatformWallet @relation(fields: [platformWalletId], references: [id])
+  userId           String? // ลูกค้าที่จ่าย
+  type             String // subscription_income, payout, refund
+  amount           Float
+  description      String
+  stripePaymentId  String? // Stripe payment reference
+  createdAt        DateTime       @default(now())
+}
+
+// SubscriptionPlan — config สำหรับแต่ละ tier
+model SubscriptionPlan {
+  id              String @id @default(cuid())
+  tier            String @unique // free, starter, pro
+  name            String
+  priceMonthly    Float
+  pointsPerMonth  Int    @default(0) // points ที่ได้ต่อเดือน
+  maxContracts    Int // จำนวน contract ที่สร้างได้
+  features        String // JSON string of features
+  stripePriceId   String? // Stripe price ID
+}
+
+// Reward — ของรางวัลที่แลกได้ด้วย points
+model Reward {
+  id          String            @id @default(cuid())
+  name        String            @unique
+  nameTh      String
+  description String
+  descriptionTh String
+  pointsCost  Int
+  imageUrl    String
+  category    String // gadget, gift_card, lifestyle
+  stock       Int              @default(-1) // -1 = unlimited
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  redemptions RewardRedemption[]
+}
+
+model RewardRedemption {
+  id        String   @id @default(cuid())
+  rewardId  String
+  reward    Reward   @relation(fields: [rewardId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  walletId  String
+  wallet    Wallet   @relation(fields: [walletId], references: [id])
+  status    String   @default("pending") // pending, processing, shipped, completed, cancelled
+  address   String?  // ที่อยู่จัดส่ง
+  note      String?
+  createdAt DateTime @default(now())
 }

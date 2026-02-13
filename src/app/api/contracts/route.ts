@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/jwt";
 import { prisma } from "@/lib/db";
 
+const TIER_LIMITS: Record<string, number> = {
+  free: 1,
+  basic: 5,
+  pro: 999,
+};
+
 export async function GET() {
   try {
     const session = await getSession();
@@ -9,7 +15,6 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Fetch all contracts for user with submissions count
     const contracts = await prisma.contract.findMany({
       where: { userId: session.userId },
       include: {
@@ -38,97 +43,54 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { goal, stakes, duration, deadline } = body;
+    const { goal, duration, deadline } = body;
 
-    // Validate inputs
-    if (!goal || !stakes || !duration || !deadline) {
+    if (!goal || !duration || !deadline) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    if (stakes < 100) {
-      return NextResponse.json(
-        { error: "Minimum stakes is 100 baht" },
-        { status: 400 }
-      );
-    }
-
-    // Calculate fee (5% of stakes)
-    const fee = Math.round(stakes * 0.05);
-    const total = stakes + fee;
-
-    // Get or create wallet
-    let wallet = await prisma.wallet.findUnique({
-      where: { userId: session.userId },
+    // Check subscription tier contract limit
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
     });
 
-    if (!wallet) {
-      wallet = await prisma.wallet.create({
-        data: {
-          userId: session.userId,
-          balance: 0,
-          points: 0,
-          streak: 0,
-          lastActiveAt: new Date(),
-        },
-      });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Check wallet balance
-    if (wallet.balance < total) {
+    const maxContracts = TIER_LIMITS[user.subscriptionTier] ?? 1;
+
+    const activeCount = await prisma.contract.count({
+      where: { userId: session.userId, status: "active" },
+    });
+
+    if (activeCount >= maxContracts) {
       return NextResponse.json(
         {
-          error: "Insufficient balance",
-          required: total,
-          current: wallet.balance,
+          error: "Contract limit reached",
+          limit: maxContracts,
+          current: activeCount,
+          tier: user.subscriptionTier,
         },
-        { status: 400 }
+        { status: 403 }
       );
     }
 
-    // Create contract and deduct from wallet in transaction
-    const result = await prisma.$transaction(async (tx) => {
-      // Deduct stakes + fee from wallet
-      const updatedWallet = await tx.wallet.update({
-        where: { userId: session.userId },
-        data: {
-          balance: { decrement: total },
-        },
-      });
-
-      // Create transaction record
-      await tx.transaction.create({
-        data: {
-          walletId: updatedWallet.id,
-          type: "deposit",
-          amount: -total,
-          description: `มัดจำ: ${goal}`,
-        },
-      });
-
-      // Create contract
-      const contract = await tx.contract.create({
-        data: {
-          userId: session.userId,
-          goal,
-          stakes,
-          fee,
-          duration,
-          deadline,
-          status: "active",
-          daysCompleted: 0,
-        },
-      });
-
-      return { contract, wallet: updatedWallet };
+    const contract = await prisma.contract.create({
+      data: {
+        userId: session.userId,
+        goal,
+        duration,
+        deadline,
+        status: "active",
+        daysCompleted: 0,
+      },
     });
 
-    return NextResponse.json({
-      success: true,
-      contract: result.contract,
-    });
+    return NextResponse.json({ success: true, contract });
   } catch (error) {
     console.error("Error creating contract:", error);
     return NextResponse.json(

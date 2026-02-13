@@ -5,6 +5,7 @@ import { useI18n } from "@/lib/i18n";
 import AuthGuard from "@/components/AuthGuard";
 
 type SubmissionStatus = "pending" | "approved" | "rejected";
+type AdminTab = SubmissionStatus | "revenue";
 
 interface Submission {
   id: string;
@@ -24,16 +25,36 @@ interface Submission {
   };
 }
 
+interface RevenueTransaction {
+  id: string;
+  type: string;
+  amount: number;
+  description: string;
+  createdAt: string;
+}
+
+interface RevenueData {
+  balance: number;
+  totalRevenue: number;
+  transactions: RevenueTransaction[];
+}
+
 export default function AdminPage() {
   const { t } = useI18n();
-  const [activeTab, setActiveTab] = useState<SubmissionStatus>("pending");
+  const [activeTab, setActiveTab] = useState<AdminTab>("pending");
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+  const [revenue, setRevenue] = useState<RevenueData | null>(null);
+  const [revenueLoading, setRevenueLoading] = useState(false);
 
   useEffect(() => {
-    fetchSubmissions(activeTab);
+    if (activeTab === "revenue") {
+      fetchRevenue();
+    } else {
+      fetchSubmissions(activeTab);
+    }
   }, [activeTab]);
 
   const fetchSubmissions = async (status: SubmissionStatus) => {
@@ -50,6 +71,21 @@ export default function AdminPage() {
       console.error("Error fetching submissions:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRevenue = async () => {
+    setRevenueLoading(true);
+    try {
+      const res = await fetch("/api/admin/revenue");
+      if (res.ok) {
+        const data = await res.json();
+        setRevenue(data);
+      }
+    } catch (err) {
+      console.error("Error fetching revenue:", err);
+    } finally {
+      setRevenueLoading(false);
     }
   };
 
@@ -73,9 +109,7 @@ export default function AdminPage() {
       });
 
       if (res.ok) {
-        // Refresh the list
-        await fetchSubmissions(activeTab);
-        // Clear the note
+        await fetchSubmissions(activeTab as SubmissionStatus);
         setReviewNotes((prev) => {
           const newNotes = { ...prev };
           delete newNotes[submissionId];
@@ -98,7 +132,6 @@ export default function AdminPage() {
   };
 
   const getTabCount = (status: SubmissionStatus) => {
-    // This is approximate since we only have current tab data
     return status === activeTab ? submissions.length : "?";
   };
 
@@ -113,6 +146,16 @@ export default function AdminPage() {
     });
   };
 
+  const formatShortDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString("th-TH", {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <AuthGuard>
       <div className="min-h-screen bg-[#0A0A0A] text-white">
@@ -121,10 +164,10 @@ export default function AdminPage() {
           <h1 className="text-3xl font-bold mb-8">{t("admin.title")}</h1>
 
           {/* Tabs */}
-          <div className="flex border-b border-[#1A1A1A] mb-8">
+          <div className="flex border-b border-[#1A1A1A] mb-8 overflow-x-auto">
             <button
               onClick={() => setActiveTab("pending")}
-              className={`px-6 pb-3 transition-colors ${
+              className={`px-6 pb-3 transition-colors whitespace-nowrap ${
                 activeTab === "pending"
                   ? "text-orange-500 border-b-2 border-orange-500"
                   : "text-gray-400"
@@ -134,7 +177,7 @@ export default function AdminPage() {
             </button>
             <button
               onClick={() => setActiveTab("approved")}
-              className={`px-6 pb-3 transition-colors ${
+              className={`px-6 pb-3 transition-colors whitespace-nowrap ${
                 activeTab === "approved"
                   ? "text-orange-500 border-b-2 border-orange-500"
                   : "text-gray-400"
@@ -144,7 +187,7 @@ export default function AdminPage() {
             </button>
             <button
               onClick={() => setActiveTab("rejected")}
-              className={`px-6 pb-3 transition-colors ${
+              className={`px-6 pb-3 transition-colors whitespace-nowrap ${
                 activeTab === "rejected"
                   ? "text-orange-500 border-b-2 border-orange-500"
                   : "text-gray-400"
@@ -152,10 +195,130 @@ export default function AdminPage() {
             >
               {t("admin.rejected")} ({getTabCount("rejected")})
             </button>
+            <button
+              onClick={() => setActiveTab("revenue")}
+              className={`px-6 pb-3 transition-colors whitespace-nowrap ${
+                activeTab === "revenue"
+                  ? "text-orange-500 border-b-2 border-orange-500"
+                  : "text-gray-400"
+              }`}
+            >
+              {t({ th: "รายได้", en: "Revenue" })}
+            </button>
           </div>
 
-          {/* Loading */}
-          {loading ? (
+          {/* Revenue Tab */}
+          {activeTab === "revenue" ? (
+            revenueLoading ? (
+              <div className="text-gray-500 text-center py-12">Loading...</div>
+            ) : (
+              <div className="space-y-6">
+                {/* Revenue Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-gradient-to-r from-green-600/20 to-green-500/10 border border-green-500/30 rounded-2xl p-6">
+                    <p className="text-sm text-green-400 mb-1">
+                      {t({
+                        th: "ยอดเงินคงเหลือ",
+                        en: "Platform Wallet Balance",
+                      })}
+                    </p>
+                    <p className="text-3xl font-black text-white">
+                      ฿{(revenue?.balance || 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="bg-gradient-to-r from-orange-600/20 to-orange-500/10 border border-orange-500/30 rounded-2xl p-6">
+                    <p className="text-sm text-orange-400 mb-1">
+                      {t({ th: "รายได้ทั้งหมด", en: "Total Revenue" })}
+                    </p>
+                    <p className="text-3xl font-black text-white">
+                      ฿{(revenue?.totalRevenue || 0).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Recent Transactions */}
+                <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl overflow-hidden">
+                  <div className="p-6 pb-4">
+                    <h2 className="text-xl font-bold">
+                      {t({
+                        th: "ธุรกรรมล่าสุด",
+                        en: "Recent Transactions",
+                      })}
+                    </h2>
+                  </div>
+                  <div className="divide-y divide-[#1A1A1A]">
+                    {(revenue?.transactions || []).length === 0 ? (
+                      <div className="px-6 py-8 text-center text-gray-400">
+                        {t({
+                          th: "ยังไม่มีธุรกรรม",
+                          en: "No transactions yet",
+                        })}
+                      </div>
+                    ) : (
+                      revenue!.transactions.map((tx) => (
+                        <div
+                          key={tx.id}
+                          className="px-6 py-4 flex items-center gap-4"
+                        >
+                          <div
+                            className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                              tx.amount > 0
+                                ? "bg-green-500/20 text-green-500"
+                                : "bg-red-500/20 text-red-500"
+                            }`}
+                          >
+                            {tx.amount > 0 ? (
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M7 11l5-5m0 0l5 5m-5-5v12"
+                                />
+                              </svg>
+                            ) : (
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M17 13l-5 5m0 0l-5-5m5 5V6"
+                                />
+                              </svg>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-white truncate">
+                              {tx.description}
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              {formatShortDate(tx.createdAt)}
+                            </div>
+                          </div>
+                          <div
+                            className={`text-lg font-bold ${tx.amount > 0 ? "text-green-500" : "text-red-500"}`}
+                          >
+                            {tx.amount > 0 ? "+" : ""}฿
+                            {Math.abs(tx.amount).toLocaleString()}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          ) : loading ? (
             <div className="text-gray-500 text-center py-12">Loading...</div>
           ) : submissions.length === 0 ? (
             <div className="text-gray-500 text-center py-12">
@@ -264,11 +427,11 @@ export default function AdminPage() {
                     </>
                   ) : submission.status === "approved" ? (
                     <div className="bg-green-500/20 text-green-400 rounded-full px-3 py-1 inline-block mt-3">
-                      Approved ✓
+                      Approved
                     </div>
                   ) : (
                     <div className="bg-red-500/20 text-red-400 rounded-full px-3 py-1 inline-block mt-3">
-                      Rejected ✗
+                      Rejected
                     </div>
                   )}
                 </div>
