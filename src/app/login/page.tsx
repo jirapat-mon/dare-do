@@ -12,18 +12,28 @@ export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
-      login(email);
+    setError("");
+    setLoading(true);
+
+    const result = await login(email, password);
+
+    setLoading(false);
+
+    if (result.success) {
       router.push("/dashboard");
+    } else {
+      setError(result.error || "Login failed");
     }
   };
 
   const handleSocialLogin = (provider: string) => {
-    login(`user@${provider}.com`);
-    router.push("/dashboard");
+    alert(`Social login with ${provider} is not yet implemented`);
   };
 
   return (
@@ -51,6 +61,12 @@ export default function LoginPage() {
 
         {/* Email/Password Form */}
         <form onSubmit={handleLogin} className="space-y-4">
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-xl text-sm">
+              {error}
+            </div>
+          )}
+
           <div>
             <label className="block text-sm text-gray-400 mb-2">
               {t("auth.email")}
@@ -62,6 +78,7 @@ export default function LoginPage() {
               placeholder="you@example.com"
               className="w-full bg-[#1A1A1A] border border-[#333] text-white rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500 transition"
               required
+              disabled={loading}
             />
           </div>
 
@@ -71,8 +88,12 @@ export default function LoginPage() {
             </label>
             <input
               type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               className="w-full bg-[#1A1A1A] border border-[#333] text-white rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500 transition"
+              required
+              disabled={loading}
             />
           </div>
 
@@ -87,9 +108,10 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold py-3 rounded-full transition-all"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold py-3 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {t("auth.loginButton")}
+            {loading ? "Logging in..." : t("auth.loginButton")}
           </button>
         </form>
 

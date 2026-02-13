@@ -53,7 +53,9 @@ export default function Navbar() {
           <LanguageToggle />
           {isLoggedIn ? (
             <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-400">{user?.email}</span>
+              <span className="text-sm text-gray-400">
+                {user?.name || user?.email}
+              </span>
               <button
                 onClick={handleLogout}
                 className="text-sm px-4 py-2 rounded-full border border-[#333] text-gray-400 hover:text-white hover:border-red-500 transition"
@@ -110,7 +112,9 @@ export default function Navbar() {
         <div className="md:hidden bg-black/95 border-b border-[#1A1A1A] px-4 py-4 space-y-3">
           {isLoggedIn ? (
             <>
-              <p className="text-sm text-gray-500 py-1">{user?.email}</p>
+              <p className="text-sm text-gray-500 py-1">
+                {user?.name || user?.email}
+              </p>
               <Link
                 href="/dashboard"
                 onClick={() => setIsMenuOpen(false)}

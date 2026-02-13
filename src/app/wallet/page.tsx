@@ -3,53 +3,79 @@
 import { useI18n } from "@/lib/i18n";
 import AuthGuard from "@/components/AuthGuard";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
+interface Transaction {
+  id: string;
+  type: string;
+  amount: number;
+  description: string;
+  createdAt: string;
+}
+
+interface WalletData {
+  id: string;
+  balance: number;
+  points: number;
+  streak: number;
+  lastActiveAt: string | null;
+}
 
 export default function WalletPage() {
   const { t } = useI18n();
+  const [loading, setLoading] = useState(true);
+  const [wallet, setWallet] = useState<WalletData | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-  // Mock transaction data
-  const transactions = [
-    {
-      type: "deposit",
-      desc: { th: "มัดจำ: วิ่ง 5 กม.", en: "Deposit: Run 5 km" },
-      amount: -1000,
-      date: { th: "14 ก.พ.", en: "14 Feb" },
-    },
-    {
-      type: "refund",
-      desc: { th: "คืนเงิน: ตื่นเช้า (95%)", en: "Refund: Wake up early (95%)" },
-      amount: 475,
-      date: { th: "13 ก.พ.", en: "13 Feb" },
-    },
-    {
-      type: "points",
-      desc: { th: "แลก Points: ฿25 credit", en: "Redeem Points: ฿25 credit" },
-      amount: 25,
-      date: { th: "10 ก.พ.", en: "10 Feb" },
-    },
-    {
-      type: "deposit",
-      desc: { th: "มัดจำ: อ่านหนังสือ", en: "Deposit: Read books" },
-      amount: -300,
-      date: { th: "8 ก.พ.", en: "8 Feb" },
-    },
-    {
-      type: "failed",
-      desc: { th: "ยึดเงิน: ออกกำลังกาย", en: "Forfeited: Exercise" },
-      amount: -500,
-      date: { th: "5 ก.พ.", en: "5 Feb" },
-    },
-  ];
+  useEffect(() => {
+    fetchWallet();
+  }, []);
+
+  const fetchWallet = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/wallet");
+      if (response.ok) {
+        const data = await response.json();
+        setWallet(data.wallet);
+        setTransactions(data.transactions);
+      }
+    } catch (error) {
+      console.error("Error fetching wallet:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const currentStreak = wallet?.streak || 0;
 
   // Streak calendar data (30 days)
   type DayStatus = "completed" | "today" | "future" | "failed";
   const streakDays: DayStatus[] = Array.from({ length: 30 }, (_, i) => {
-    if (i < 12) return "completed" as DayStatus;
-    if (i === 12) return "today" as DayStatus;
+    if (i < currentStreak) return "completed" as DayStatus;
+    if (i === currentStreak) return "today" as DayStatus;
     return "future" as DayStatus;
   });
 
-  const currentStreak = 12;
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const month = date.toLocaleString("th-TH", { month: "short" });
+    const day = date.getDate();
+    return `${day} ${month}`;
+  };
+
+  if (loading) {
+    return (
+      <AuthGuard>
+        <div className="min-h-screen bg-[#0A0A0A] text-white flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading wallet...</p>
+          </div>
+        </div>
+      </AuthGuard>
+    );
+  }
 
   return (
     <AuthGuard>
@@ -61,7 +87,9 @@ export default function WalletPage() {
               {t({ th: "กระเป๋าเงิน DareDo", en: "DareDo Wallet" })}
             </h1>
             <div className="mb-6">
-              <div className="text-4xl font-black text-white mb-1">฿2,450</div>
+              <div className="text-4xl font-black text-white mb-1">
+                ฿{wallet?.balance.toLocaleString() || "0"}
+              </div>
               <div className="text-white/80 text-sm">
                 {t({ th: "ยอดเงินคงเหลือ", en: "Available Balance" })}
               </div>
@@ -82,7 +110,9 @@ export default function WalletPage() {
               <div className="flex items-center gap-3">
                 <span className="text-3xl">⭐</span>
                 <div>
-                  <div className="text-2xl font-bold text-orange-500">1,250 Points</div>
+                  <div className="text-2xl font-bold text-orange-500">
+                    {wallet?.points.toLocaleString() || "0"} Points
+                  </div>
                 </div>
               </div>
               <Link
@@ -157,64 +187,75 @@ export default function WalletPage() {
               </h2>
             </div>
             <div className="divide-y divide-[#1A1A1A]">
-              {transactions.map((tx, i) => (
-                <div key={i} className="px-6 py-4 flex items-center gap-4">
-                  <div
-                    className={`
-                    flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center
-                    ${
-                      tx.amount > 0
-                        ? "bg-green-500/20 text-green-500"
-                        : "bg-red-500/20 text-red-500"
-                    }
-                  `}
-                  >
-                    {tx.amount > 0 ? (
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M7 11l5-5m0 0l5 5m-5-5v12"
-                        />
-                      </svg>
-                    ) : (
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17 13l-5 5m0 0l-5-5m5 5V6"
-                        />
-                      </svg>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-white truncate">
-                      {t(tx.desc)}
-                    </div>
-                    <div className="text-xs text-gray-400">{t(tx.date)}</div>
-                  </div>
-                  <div
-                    className={`
-                    text-lg font-bold
-                    ${tx.amount > 0 ? "text-green-500" : "text-red-500"}
-                  `}
-                  >
-                    {tx.amount > 0 ? "+" : ""}฿{Math.abs(tx.amount)}
-                  </div>
+              {transactions.length === 0 ? (
+                <div className="px-6 py-8 text-center text-gray-400">
+                  {t({
+                    th: "ยังไม่มีธุรกรรม",
+                    en: "No transactions yet",
+                  })}
                 </div>
-              ))}
+              ) : (
+                transactions.map((tx) => (
+                  <div key={tx.id} className="px-6 py-4 flex items-center gap-4">
+                    <div
+                      className={`
+                      flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center
+                      ${
+                        tx.amount > 0
+                          ? "bg-green-500/20 text-green-500"
+                          : "bg-red-500/20 text-red-500"
+                      }
+                    `}
+                    >
+                      {tx.amount > 0 ? (
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M7 11l5-5m0 0l5 5m-5-5v12"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M17 13l-5 5m0 0l-5-5m5 5V6"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-white truncate">
+                        {tx.description}
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {formatDate(tx.createdAt)}
+                      </div>
+                    </div>
+                    <div
+                      className={`
+                      text-lg font-bold
+                      ${tx.amount > 0 ? "text-green-500" : "text-red-500"}
+                    `}
+                    >
+                      {tx.amount > 0 ? "+" : ""}฿{Math.abs(tx.amount).toLocaleString()}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  password  String
+  name      String?
+  role      String     @default("user") // user, admin
+  createdAt DateTime   @default(now())
+  wallet    Wallet?
+  contracts Contract[]
+}
+
+model Wallet {
+  id           String        @id @default(cuid())
+  userId       String        @unique
+  user         User          @relation(fields: [userId], references: [id])
+  balance      Float         @default(0)
+  points       Int           @default(0)
+  streak       Int           @default(0)
+  lastActiveAt DateTime?
+  transactions Transaction[]
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  walletId    String
+  wallet      Wallet   @relation(fields: [walletId], references: [id])
+  type        String   // deposit, refund, topup, withdraw, points_redeem, forfeit
+  amount      Float
+  description String
+  createdAt   DateTime @default(now())
+}
+
+model Contract {
+  id            String       @id @default(cuid())
+  userId        String
+  user          User         @relation(fields: [userId], references: [id])
+  goal          String
+  stakes        Float
+  fee           Float
+  duration      Int
+  deadline      String       // HH:mm daily deadline
+  status        String       @default("active") // active, success, failed
+  daysCompleted Int          @default(0)
+  createdAt     DateTime     @default(now())
+  submissions   Submission[]
+}
+
+model Submission {
+  id         String   @id @default(cuid())
+  contractId String
+  contract   Contract @relation(fields: [contractId], references: [id])
+  imageUrl   String
+  note       String?
+  dailyCode  String
+  status     String   @default("pending") // pending, approved, rejected
+  createdAt  DateTime @default(now())
+}
