@@ -24,6 +24,7 @@ export default function SubmitEvidencePage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
   const [cameraError, setCameraError] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -53,14 +54,32 @@ export default function SubmitEvidencePage() {
 
   const startCamera = useCallback(async () => {
     setCameraError("");
+    setCameraReady(false);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 960 } },
-        audio: false,
-      });
+      // Try back camera first, fallback to any camera
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" } },
+          audio: false,
+        });
+      } catch {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+      }
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        // Wait for video to actually be playing with real frames
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play();
+        };
+        videoRef.current.onplaying = () => {
+          // Extra delay to ensure frames are rendering
+          setTimeout(() => setCameraReady(true), 300);
+        };
       }
       setCameraActive(true);
     } catch (err) {
@@ -77,19 +96,30 @@ export default function SubmitEvidencePage() {
       streamRef.current = null;
     }
     setCameraActive(false);
+    setCameraReady(false);
   };
 
   const capturePhoto = () => {
-    if (!videoRef.current) return;
+    const video = videoRef.current;
+    if (!video || video.videoWidth === 0 || video.videoHeight === 0) return;
 
     const canvas = document.createElement("canvas");
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.drawImage(videoRef.current, 0, 0);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+
+    // Verify we got real image data (not empty/black canvas)
+    if (dataUrl.length < 1000) {
+      setCameraError(
+        t({ th: "ถ่ายรูปไม่สำเร็จ กรุณาลองใหม่", en: "Capture failed. Please try again." })
+      );
+      return;
+    }
+
     setCapturedImage(dataUrl);
     stopCamera();
   };
@@ -223,15 +253,26 @@ export default function SubmitEvidencePage() {
                   playsInline
                   muted
                   className="w-full rounded-2xl border-2 border-orange-500"
+                  style={{ minHeight: 200, background: "#000" }}
                 />
-                <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-                  <button
-                    onClick={capturePhoto}
-                    className="w-16 h-16 bg-white rounded-full border-4 border-orange-500 shadow-lg hover:scale-105 transition-transform active:scale-95"
-                  >
-                    <div className="w-12 h-12 bg-orange-500 rounded-full mx-auto" />
-                  </button>
-                </div>
+                {!cameraReady && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-2xl">
+                    <div className="text-center">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mb-2"></div>
+                      <p className="text-white text-sm">{t({ th: "กำลังเปิดกล้อง...", en: "Starting camera..." })}</p>
+                    </div>
+                  </div>
+                )}
+                {cameraReady && (
+                  <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+                    <button
+                      onClick={capturePhoto}
+                      className="w-16 h-16 bg-white rounded-full border-4 border-orange-500 shadow-lg hover:scale-105 transition-transform active:scale-95"
+                    >
+                      <div className="w-12 h-12 bg-orange-500 rounded-full mx-auto" />
+                    </button>
+                  </div>
+                )}
                 <div className="absolute top-3 right-3">
                   <button
                     onClick={stopCamera}
