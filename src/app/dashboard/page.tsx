@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
+import AuthGuard from "@/components/AuthGuard";
 
 const contracts = [
   {
@@ -43,6 +44,7 @@ export default function DashboardPage() {
   const { t } = useI18n();
 
   return (
+    <AuthGuard>
     <div className="max-w-6xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">{t("dashboard.title")}</h1>
 
@@ -124,5 +126,6 @@ export default function DashboardPage() {
         })}
       </div>
     </div>
+    </AuthGuard>
   );
 }

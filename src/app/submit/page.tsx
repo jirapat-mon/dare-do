@@ -3,12 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
+import AuthGuard from "@/components/AuthGuard";
 
 export default function SubmitEvidencePage() {
   const { t } = useI18n();
   const [hasFile, setHasFile] = useState(false);
 
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-[#0A0A0A] text-white">
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Back Link */}
@@ -119,5 +121,6 @@ export default function SubmitEvidencePage() {
         </button>
       </div>
     </div>
+    </AuthGuard>
   );
 }

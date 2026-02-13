@@ -3,12 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
+import AuthGuard from "@/components/AuthGuard";
 
 export default function PaymentPage() {
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<"card" | "qr">("card");
 
   return (
+    <AuthGuard>
     <div className="px-4 py-8">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
@@ -179,5 +181,6 @@ export default function PaymentPage() {
         </p>
       </div>
     </div>
+    </AuthGuard>
   );
 }

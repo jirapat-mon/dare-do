@@ -1,10 +1,30 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
+import SocialLoginButtons from "@/components/SocialLoginButtons";
 
 export default function LoginPage() {
   const { t } = useI18n();
+  const { login } = useAuth();
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email) {
+      login(email);
+      router.push("/dashboard");
+    }
+  };
+
+  const handleSocialLogin = (provider: string) => {
+    login(`user@${provider}.com`);
+    router.push("/dashboard");
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
@@ -17,16 +37,31 @@ export default function LoginPage() {
           <p className="text-gray-500 text-sm mt-2">{t("auth.login")}</p>
         </div>
 
-        {/* Form */}
-        <div className="space-y-4">
+        {/* Social Login */}
+        <SocialLoginButtons onProviderClick={handleSocialLogin} />
+
+        {/* Divider */}
+        <div className="flex items-center gap-4 my-6">
+          <div className="flex-1 h-px bg-[#333]"></div>
+          <span className="text-sm text-gray-500">
+            {t("auth.orContinueWith")}
+          </span>
+          <div className="flex-1 h-px bg-[#333]"></div>
+        </div>
+
+        {/* Email/Password Form */}
+        <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-sm text-gray-400 mb-2">
               {t("auth.email")}
             </label>
             <input
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               className="w-full bg-[#1A1A1A] border border-[#333] text-white rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500 transition"
+              required
             />
           </div>
 
@@ -50,24 +85,20 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          <button className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold py-3 rounded-full transition-all">
+          <button
+            type="submit"
+            className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold py-3 rounded-full transition-all"
+          >
             {t("auth.loginButton")}
           </button>
-        </div>
-
-        {/* Divider */}
-        <div className="flex items-center gap-4 my-6">
-          <div className="flex-1 h-px bg-[#333]"></div>
-          <span className="text-sm text-gray-500">
-            {t("auth.orContinueWith")}
-          </span>
-          <div className="flex-1 h-px bg-[#333]"></div>
-        </div>
+        </form>
 
         {/* Magic Link */}
-        <button className="w-full border border-orange-500 text-orange-500 hover:bg-orange-500/10 font-semibold py-3 rounded-full transition">
-          {t("auth.magicLink")}
-        </button>
+        <div className="mt-4">
+          <button className="w-full border border-orange-500 text-orange-500 hover:bg-orange-500/10 font-semibold py-3 rounded-full transition">
+            {t("auth.magicLink")}
+          </button>
+        </div>
 
         {/* Register Link */}
         <p className="text-center text-sm text-gray-400 mt-6">

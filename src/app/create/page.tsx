@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
+import AuthGuard from "@/components/AuthGuard";
 
 const DURATIONS = [7, 14, 30, 60, 90];
 const HOURS = Array.from({ length: 18 }, (_, i) => {
@@ -23,6 +24,7 @@ export default function CreateContractPage() {
   const refund = Math.round(stakesNum * 0.9);
 
   return (
+    <AuthGuard>
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">{t("create.title")}</h1>
 
@@ -149,5 +151,6 @@ export default function CreateContractPage() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   );
 }

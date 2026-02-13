@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
+import AuthGuard from "@/components/AuthGuard";
 
 type SubmissionStatus = "pending" | "approved" | "rejected";
 
@@ -65,6 +66,7 @@ export default function AdminPage() {
   };
 
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-[#0A0A0A] text-white">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Title */}
@@ -183,5 +185,6 @@ export default function AdminPage() {
         )}
       </div>
     </div>
+    </AuthGuard>
   );
 }

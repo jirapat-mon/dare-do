@@ -66,6 +66,8 @@ const translations = {
     "auth.magicLink": "ส่ง Magic Link",
     "auth.loginButton": "เข้าสู่ระบบ",
     "auth.registerButton": "สมัครสมาชิก",
+    "auth.continueWith": "ดำเนินการด้วย",
+    "auth.orSignUpWith": "หรือสมัครด้วย",
 
     // Create Contract
     "create.title": "สร้างสัญญากับตัวเอง",
@@ -207,6 +209,8 @@ const translations = {
     "auth.magicLink": "Send Magic Link",
     "auth.loginButton": "Login",
     "auth.registerButton": "Register",
+    "auth.continueWith": "Continue with",
+    "auth.orSignUpWith": "Or sign up with",
 
     // Create Contract
     "create.title": "Create Your Contract",

@@ -1,10 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
+import SocialLoginButtons from "@/components/SocialLoginButtons";
 
 export default function RegisterPage() {
   const { t } = useI18n();
+  const { login } = useAuth();
+  const router = useRouter();
+
+  const handleSocialLogin = (provider: string) => {
+    login(`user@${provider}.com`);
+    router.push("/dashboard");
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
@@ -17,7 +27,19 @@ export default function RegisterPage() {
           <p className="text-gray-500 text-sm mt-2">{t("auth.register")}</p>
         </div>
 
-        {/* Form */}
+        {/* Social Login */}
+        <SocialLoginButtons onProviderClick={handleSocialLogin} />
+
+        {/* Divider */}
+        <div className="flex items-center gap-4 my-6">
+          <div className="flex-1 h-px bg-[#333]"></div>
+          <span className="text-sm text-gray-500">
+            {t("auth.orSignUpWith")}
+          </span>
+          <div className="flex-1 h-px bg-[#333]"></div>
+        </div>
+
+        {/* Email/Password Form */}
         <div className="space-y-4">
           <div>
             <label className="block text-sm text-gray-400 mb-2">
