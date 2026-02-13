@@ -19,9 +19,9 @@ export default function CreateContractPage() {
   const [deadline, setDeadline] = useState("21:00");
 
   const stakesNum = typeof stakes === "number" ? stakes : 0;
-  const fee = Math.round(stakesNum * 0.1);
+  const fee = Math.round(stakesNum * 0.05);
   const total = stakesNum + fee;
-  const refund = Math.round(stakesNum * 0.9);
+  const refund = Math.round(stakesNum * 0.95);
 
   return (
     <AuthGuard>

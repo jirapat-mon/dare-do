@@ -11,6 +11,7 @@ const translations = {
     "nav.dashboard": "แดชบอร์ด",
     "nav.create": "สร้างสัญญา",
     "nav.admin": "แอดมิน",
+    "nav.wallet": "กระเป๋าเงิน",
     "nav.login": "เข้าสู่ระบบ",
     "nav.register": "สมัครสมาชิก",
     "nav.logout": "ออกจากระบบ",
@@ -32,7 +33,7 @@ const translations = {
     "howItWorks.step2.title": "ส่งหลักฐานทุกวัน",
     "howItWorks.step2.desc": "ถ่ายรูปพร้อมรหัสประจำวัน ส่งก่อนเวลาหมด",
     "howItWorks.step3.title": "รับเงินคืน",
-    "howItWorks.step3.desc": "ทำสำเร็จครบทุกวัน ได้เงินคืน 90%",
+    "howItWorks.step3.desc": "ทำสำเร็จครบทุกวัน ได้เงินคืน 95%",
     "howItWorks.step3.fail": "ล้มเหลว เสียทั้งหมด",
 
     "stats.successRate": "ผู้ใช้ทำสำเร็จ",
@@ -79,9 +80,9 @@ const translations = {
     "create.stakesPlaceholder": "ขั้นต่ำ 100 บาท",
     "create.deadline": "เวลาส่งหลักฐาน (Deadline)",
     "create.summary": "สรุป",
-    "create.fee": "ค่าธรรมเนียม (10%)",
+    "create.fee": "ค่าธรรมเนียม (5%)",
     "create.total": "รวมทั้งหมด",
-    "create.refundSuccess": "ได้คืนเมื่อสำเร็จ",
+    "create.refundSuccess": "ได้คืนเมื่อสำเร็จ (95%)",
     "create.submit": "ยืนยันและชำระเงิน",
     "create.warning": "เมื่อยืนยันแล้ว ไม่สามารถยกเลิกได้",
 
@@ -131,7 +132,7 @@ const translations = {
     "payment.goal": "เป้าหมาย",
     "payment.durationLabel": "ระยะเวลา",
     "payment.deposit": "เงินมัดจำ",
-    "payment.feeLabel": "ค่าธรรมเนียม (10%)",
+    "payment.feeLabel": "ค่าธรรมเนียม (5%)",
     "payment.totalLabel": "รวมทั้งหมด",
     "payment.selectMethod": "เลือกช่องทางชำระเงิน",
     "payment.creditDebit": "💳 บัตรเครดิต/เดบิต",
@@ -154,6 +155,7 @@ const translations = {
     "nav.dashboard": "Dashboard",
     "nav.create": "Create Contract",
     "nav.admin": "Admin",
+    "nav.wallet": "Wallet",
     "nav.login": "Login",
     "nav.register": "Register",
     "nav.logout": "Logout",
@@ -175,7 +177,7 @@ const translations = {
     "howItWorks.step2.title": "Submit Proof Daily",
     "howItWorks.step2.desc": "Take a photo with daily code, submit before deadline",
     "howItWorks.step3.title": "Get Your Money Back",
-    "howItWorks.step3.desc": "Complete every day, get 90% back.",
+    "howItWorks.step3.desc": "Complete every day, get 95% back.",
     "howItWorks.step3.fail": "Fail and lose it all",
 
     "stats.successRate": "Users succeeded",
@@ -222,9 +224,9 @@ const translations = {
     "create.stakesPlaceholder": "Minimum ฿100",
     "create.deadline": "Daily Submission Deadline",
     "create.summary": "Summary",
-    "create.fee": "Platform Fee (10%)",
+    "create.fee": "Platform Fee (5%)",
     "create.total": "Total",
-    "create.refundSuccess": "Refund on success",
+    "create.refundSuccess": "Refund on success (95%)",
     "create.submit": "Confirm & Pay",
     "create.warning": "Once confirmed, this cannot be cancelled",
 
@@ -274,7 +276,7 @@ const translations = {
     "payment.goal": "Goal",
     "payment.durationLabel": "Duration",
     "payment.deposit": "Deposit",
-    "payment.feeLabel": "Platform Fee (10%)",
+    "payment.feeLabel": "Platform Fee (5%)",
     "payment.totalLabel": "Total",
     "payment.selectMethod": "Select Payment Method",
     "payment.creditDebit": "💳 Credit/Debit Card",
@@ -293,10 +295,11 @@ const translations = {
 } as const;
 
 type TranslationKey = keyof typeof translations.th;
+type TranslationInput = TranslationKey | { th: string; en: string };
 
 interface I18nContextType {
   locale: Locale;
-  t: (key: TranslationKey, params?: Record<string, string>) => string;
+  t: (key: TranslationInput, params?: Record<string, string>) => string;
   toggleLocale: () => void;
 }
 
@@ -310,8 +313,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const t = useCallback(
-    (key: TranslationKey, params?: Record<string, string>) => {
-      let text: string = translations[locale][key] || key;
+    (key: TranslationInput, params?: Record<string, string>) => {
+      let text: string;
+      if (typeof key === "object") {
+        text = key[locale];
+      } else {
+        text = translations[locale][key] || key;
+      }
       if (params) {
         Object.entries(params).forEach(([k, v]) => {
           text = text.replace(`{${k}}`, v);

@@ -42,6 +42,12 @@ export default function Navbar() {
               >
                 {t("nav.create")}
               </Link>
+              <Link
+                href="/wallet"
+                className="text-gray-400 hover:text-white transition text-sm"
+              >
+                {t("nav.wallet")}
+              </Link>
             </>
           )}
           <LanguageToggle />
@@ -118,6 +124,13 @@ export default function Navbar() {
                 className="block text-gray-400 hover:text-white transition py-2"
               >
                 {t("nav.create")}
+              </Link>
+              <Link
+                href="/wallet"
+                onClick={() => setIsMenuOpen(false)}
+                className="block text-gray-400 hover:text-white transition py-2"
+              >
+                {t("nav.wallet")}
               </Link>
               <button
                 onClick={() => {

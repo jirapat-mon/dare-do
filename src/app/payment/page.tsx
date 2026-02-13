@@ -56,12 +56,12 @@ export default function PaymentPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">{t("payment.feeLabel")}:</span>
-              <span className="font-medium">฿100</span>
+              <span className="font-medium">฿50</span>
             </div>
             <div className="h-px bg-[#1A1A1A] my-4"></div>
             <div className="flex justify-between text-xl">
               <span className="font-semibold">{t("payment.totalLabel")}:</span>
-              <span className="font-bold text-orange-500">฿1,100</span>
+              <span className="font-bold text-orange-500">฿1,050</span>
             </div>
           </div>
         </div>
@@ -156,7 +156,7 @@ export default function PaymentPage() {
                 {t("payment.accountName")}
               </p>
               <p className="text-center text-sm text-gray-400 mb-4">
-                {t("payment.totalLabel")}: ฿1,100
+                {t("payment.totalLabel")}: ฿1,050
               </p>
               <div className="bg-[#111111] border border-[#1A1A1A] rounded-xl p-4 w-full mb-4">
                 <p className="text-sm text-gray-400 text-center">
@@ -172,7 +172,7 @@ export default function PaymentPage() {
 
         {/* Pay Button */}
         <button className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white rounded-full py-4 text-lg font-bold transition-all animate-[glow-pulse_2s_ease-in-out_infinite] mb-6">
-          {t("payment.payButton")} ฿1,100
+          {t("payment.payButton")} ฿1,050
         </button>
 
         {/* Security Notice */}
