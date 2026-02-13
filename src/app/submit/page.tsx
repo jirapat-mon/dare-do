@@ -25,6 +25,7 @@ export default function SubmitEvidencePage() {
   const [success, setSuccess] = useState(false);
   const [cameraState, setCameraState] = useState<"idle" | "starting" | "ready">("idle");
   const [cameraError, setCameraError] = useState("");
+  const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -58,24 +59,32 @@ export default function SubmitEvidencePage() {
     }
   };
 
-  const startCamera = async () => {
+  const startCamera = async (facing?: "environment" | "user") => {
+    const targetFacing = facing ?? facingMode;
     setCameraError("");
     setCameraState("starting");
     setCapturedImage("");
 
     try {
-      // Try back camera first, then fallback
       let stream: MediaStream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" } },
+          video: { facingMode: { exact: targetFacing } },
           audio: false,
         });
       } catch {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false,
-        });
+        // Fallback to ideal (some devices don't support exact)
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: targetFacing } },
+            audio: false,
+          });
+        } catch {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false,
+          });
+        }
       }
 
       // Cleanup any previous stream
@@ -158,6 +167,12 @@ export default function SubmitEvidencePage() {
 
     setCapturedImage(dataUrl);
     stopCamera();
+  };
+
+  const flipCamera = () => {
+    const newFacing = facingMode === "environment" ? "user" : "environment";
+    setFacingMode(newFacing);
+    startCamera(newFacing);
   };
 
   const retakePhoto = () => {
@@ -280,9 +295,15 @@ export default function SubmitEvidencePage() {
               </div>
             )}
 
-            {/* Camera ready — show capture button */}
+            {/* Camera ready — show capture / flip / cancel buttons */}
             {cameraState === "ready" && (
-              <div className="flex justify-center gap-4 mt-4">
+              <div className="flex justify-center items-center gap-3 mt-4">
+                <button
+                  onClick={stopCamera}
+                  className="px-5 py-3 rounded-full border border-[#333] text-gray-400 hover:text-white hover:border-red-500 transition"
+                >
+                  {t({ th: "ยกเลิก", en: "Cancel" })}
+                </button>
                 <button
                   onClick={capturePhoto}
                   className="flex items-center gap-2 bg-orange-500 text-white font-bold px-8 py-3 rounded-full hover:bg-orange-400 transition active:scale-95"
@@ -294,10 +315,13 @@ export default function SubmitEvidencePage() {
                   {t({ th: "ถ่ายรูป", en: "Capture" })}
                 </button>
                 <button
-                  onClick={stopCamera}
-                  className="px-6 py-3 rounded-full border border-[#333] text-gray-400 hover:text-white hover:border-red-500 transition"
+                  onClick={flipCamera}
+                  className="p-3 rounded-full border border-[#333] text-gray-400 hover:text-white hover:border-orange-500 transition active:scale-95"
+                  title={t({ th: "กลับกล้อง", en: "Flip camera" })}
                 >
-                  {t({ th: "ยกเลิก", en: "Cancel" })}
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
                 </button>
               </div>
             )}
@@ -305,7 +329,7 @@ export default function SubmitEvidencePage() {
             {/* Idle — show open camera button */}
             {cameraState === "idle" && !capturedImage && (
               <button
-                onClick={startCamera}
+                onClick={() => startCamera()}
                 className="w-full min-h-[250px] border-2 border-dashed border-[#333] hover:border-orange-500 rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-colors"
               >
                 <svg className="w-16 h-16 text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
