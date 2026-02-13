@@ -33,6 +33,10 @@ export default function LoginPage() {
   };
 
   const handleSocialLogin = (provider: string) => {
+    if (provider === "google") {
+      window.location.href = "/api/auth/google";
+      return;
+    }
     alert(`Social login with ${provider} is not yet implemented`);
   };
 
