@@ -20,4 +20,4 @@ export const prisma = globalForPrisma.prisma || createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
-export type PrismaTransactionClient = Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0];
+export type PrismaTransactionClient = Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$extends">;
