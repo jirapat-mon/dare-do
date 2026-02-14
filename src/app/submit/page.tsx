@@ -226,7 +226,7 @@ export default function SubmitEvidencePage() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-[#0A0A0A] text-white">
+      <div className="min-h-screen bg-[var(--bg-primary)] text-white">
         <div className="max-w-2xl mx-auto px-4 py-8">
           {/* Back Link */}
           <Link
@@ -244,18 +244,18 @@ export default function SubmitEvidencePage() {
 
           {/* Contract Selection */}
           {contracts.length === 0 ? (
-            <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 mb-6 text-gray-400 text-center">
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4 mb-6 text-gray-400 text-center">
               {t({ th: "ไม่มีสัญญาที่ active กรุณาสร้างสัญญาก่อน", en: "No active contracts. Please create a contract first." })}
             </div>
           ) : (
-            <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 mb-6">
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4 mb-6">
               <label className="block text-sm text-gray-400 mb-2">
                 {t({ th: "เลือกสัญญา:", en: "Select Contract:" })}
               </label>
               <select
                 value={selectedContractId}
                 onChange={(e) => setSelectedContractId(e.target.value)}
-                className="w-full bg-[#1A1A1A] border border-[#333] text-white rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500 transition"
+                className="w-full bg-[var(--bg-card-inner)] border border-[var(--border-secondary)] text-white rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500 transition"
               >
                 {contracts.map((contract) => (
                   <option key={contract.id} value={contract.id}>
@@ -300,7 +300,7 @@ export default function SubmitEvidencePage() {
               <div className="flex justify-center items-center gap-3 mt-4">
                 <button
                   onClick={stopCamera}
-                  className="px-5 py-3 rounded-full border border-[#333] text-gray-400 hover:text-white hover:border-red-500 transition"
+                  className="px-5 py-3 rounded-full border border-[var(--border-secondary)] text-gray-400 hover:text-white hover:border-red-500 transition"
                 >
                   {t({ th: "ยกเลิก", en: "Cancel" })}
                 </button>
@@ -316,7 +316,7 @@ export default function SubmitEvidencePage() {
                 </button>
                 <button
                   onClick={flipCamera}
-                  className="p-3 rounded-full border border-[#333] text-gray-400 hover:text-white hover:border-orange-500 transition active:scale-95"
+                  className="p-3 rounded-full border border-[var(--border-secondary)] text-gray-400 hover:text-white hover:border-orange-500 transition active:scale-95"
                   title={t({ th: "กลับกล้อง", en: "Flip camera" })}
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -330,7 +330,7 @@ export default function SubmitEvidencePage() {
             {cameraState === "idle" && !capturedImage && (
               <button
                 onClick={() => startCamera()}
-                className="w-full min-h-[250px] border-2 border-dashed border-[#333] hover:border-orange-500 rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-colors"
+                className="w-full min-h-[250px] border-2 border-dashed border-[var(--border-secondary)] hover:border-orange-500 rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-colors"
               >
                 <svg className="w-16 h-16 text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -381,7 +381,7 @@ export default function SubmitEvidencePage() {
               onChange={(e) => setNote(e.target.value)}
               placeholder={t("submit.notePlaceholder")}
               rows={3}
-              className="bg-[#1A1A1A] border border-[#333] rounded-xl w-full px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+              className="bg-[var(--bg-card-inner)] border border-[var(--border-secondary)] rounded-xl w-full px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
             />
           </div>
 

@@ -171,7 +171,7 @@ export default function PublicProfilePage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] text-white flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
           <p className="text-gray-400">{t({ th: "กำลังโหลด...", en: "Loading..." })}</p>
@@ -182,7 +182,7 @@ export default function PublicProfilePage({
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] text-white flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">?</div>
           <h1 className="text-xl font-bold mb-2">
@@ -200,7 +200,7 @@ export default function PublicProfilePage({
   // Redirect to own profile if viewing self
   if (isOwnProfile) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] text-white flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-400 mb-4">{t({ th: "นี่คือโปรไฟล์ของคุณ", en: "This is your profile" })}</p>
           <Link
@@ -215,10 +215,10 @@ export default function PublicProfilePage({
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white">
+    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Profile Card with Banner */}
-        <div className="relative bg-[#111111] border border-[#1A1A1A] rounded-2xl mb-6 overflow-hidden">
+        <div className="relative bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl mb-6 overflow-hidden">
 
           {/* Banner */}
           <div className="relative w-full h-[150px] sm:h-[200px]">
@@ -237,7 +237,7 @@ export default function PublicProfilePage({
           <div className="relative px-6 pb-6 text-center">
             {/* Avatar overlapping banner */}
             <div className="flex justify-center -mt-12 sm:-mt-14 mb-4">
-              <div className="rounded-full border-4 border-[#111111] bg-[#111111]">
+              <div className="rounded-full border-4 border-[#111111] bg-[var(--bg-secondary)]">
                 <Avatar
                   avatarUrl={profile.avatarUrl}
                   name={profile.name}
@@ -283,7 +283,7 @@ export default function PublicProfilePage({
                   </button>
                 )}
                 {friendStatus.status === "pending_sent" && (
-                  <span className="px-6 py-2 rounded-full bg-[#1A1A1A] text-gray-400 font-medium">
+                  <span className="px-6 py-2 rounded-full bg-[var(--bg-card-inner)] text-gray-400 font-medium">
                     {t({ th: "ส่งคำขอแล้ว", en: "Request Sent" })}
                   </span>
                 )}
@@ -310,25 +310,25 @@ export default function PublicProfilePage({
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 text-center">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4 text-center">
             <div className="text-2xl font-bold text-white">{profile.lifetimePoints.toLocaleString()}</div>
             <div className="text-xs text-gray-400 mt-1">
               {t({ th: "Lifetime Points", en: "Lifetime Points" })}
             </div>
           </div>
-          <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 text-center">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4 text-center">
             <div className="text-2xl font-bold text-white">{profile.streak}</div>
             <div className="text-xs text-gray-400 mt-1">
               {t({ th: "Streak", en: "Streak" })}
             </div>
           </div>
-          <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 text-center">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4 text-center">
             <div className="text-2xl font-bold text-white">{profile.stats.completedContracts}</div>
             <div className="text-xs text-gray-400 mt-1">
               {t({ th: "สัญญาสำเร็จ", en: "Completed" })}
             </div>
           </div>
-          <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 text-center">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4 text-center">
             <div className="text-2xl font-bold text-white">{profile.stats.activeContracts}</div>
             <div className="text-xs text-gray-400 mt-1">
               {t({ th: "สัญญาที่กำลังทำ", en: "Active" })}
@@ -338,7 +338,7 @@ export default function PublicProfilePage({
 
         {/* Badges */}
         {profile.badges.length > 0 && (
-          <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-6">
             <h2 className="text-xl font-bold mb-4">
               {t({ th: "เหรียญรางวัล", en: "Badges" })}{" "}
               <span className="text-sm font-normal text-gray-400">
@@ -352,7 +352,7 @@ export default function PublicProfilePage({
                 return (
                   <div
                     key={badge.badgeKey}
-                    className="bg-[#1A1A1A] rounded-xl p-3 text-center border border-[#222]"
+                    className="bg-[var(--bg-card-inner)] rounded-xl p-3 text-center border border-[var(--border-primary)]"
                   >
                     <div className="text-3xl mb-1">{def.icon}</div>
                     <div className="text-xs font-medium text-white">
@@ -369,7 +369,7 @@ export default function PublicProfilePage({
         )}
 
         {profile.badges.length === 0 && (
-          <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6 text-center">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-6 text-center">
             <p className="text-gray-500">
               {t({ th: "ยังไม่มีเหรียญรางวัล", en: "No badges yet" })}
             </p>

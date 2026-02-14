@@ -182,7 +182,7 @@ export default function CreateContractPage() {
             className={`rounded-xl px-4 py-3 mb-6 text-sm ${
               isAtLimit
                 ? "bg-red-500/10 border border-red-500/30 text-red-400"
-                : "bg-[#111111] border border-[#1A1A1A] text-gray-400"
+                : "bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-gray-400"
             }`}
           >
             <div className="flex items-center justify-between">
@@ -215,7 +215,7 @@ export default function CreateContractPage() {
 
         {/* Wallet Balance Display */}
         {!walletLoading && (
-          <div className="rounded-xl px-4 py-3 mb-6 bg-[#111111] border border-[#1A1A1A] flex items-center justify-between">
+          <div className="rounded-xl px-4 py-3 mb-6 bg-[var(--bg-secondary)] border border-[var(--border-primary)] flex items-center justify-between">
             <span className="text-sm text-gray-400">
               {t({ th: "ยอดถอนได้", en: "Available" })}
             </span>
@@ -243,7 +243,7 @@ export default function CreateContractPage() {
                 value={goal}
                 onChange={(e) => setGoal(e.target.value)}
                 placeholder={t("create.goalPlaceholder")}
-                className="w-full bg-[#1A1A1A] border border-[#333] text-white rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500 transition"
+                className="w-full bg-[var(--bg-card-inner)] border border-[var(--border-secondary)] text-white rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500 transition"
                 required
                 disabled={loading || isAtLimit}
               />
@@ -264,7 +264,7 @@ export default function CreateContractPage() {
                     className={`px-5 py-2 rounded-full border font-medium transition ${
                       duration === d
                         ? "bg-orange-500 border-orange-500 text-white"
-                        : "bg-[#1A1A1A] border-[#333] text-gray-400 hover:border-orange-500"
+                        : "bg-[var(--bg-card-inner)] border-[var(--border-secondary)] text-gray-400 hover:border-orange-500"
                     } ${loading || isAtLimit ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     {d} {t("create.days")}
@@ -281,7 +281,7 @@ export default function CreateContractPage() {
               <select
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
-                className="w-full bg-[#1A1A1A] border border-[#333] text-white rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500 transition"
+                className="w-full bg-[var(--bg-card-inner)] border border-[var(--border-secondary)] text-white rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500 transition"
                 disabled={loading || isAtLimit}
               >
                 {HOURS.map((h) => (
@@ -312,7 +312,7 @@ export default function CreateContractPage() {
                     className={`px-4 py-2 rounded-full border text-sm font-medium transition ${
                       stakes === amount && customStake === ""
                         ? "bg-orange-500 border-orange-500 text-white"
-                        : "bg-[#1A1A1A] border-[#333] text-gray-400 hover:border-orange-500"
+                        : "bg-[var(--bg-card-inner)] border-[var(--border-secondary)] text-gray-400 hover:border-orange-500"
                     } ${loading || isAtLimit ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     {amount === 0 ? t({ th: "ฟรี", en: "Free" }) : `฿${amount}`}
@@ -337,7 +337,7 @@ export default function CreateContractPage() {
                     setStakes(isNaN(num) || num < 0 ? 0 : num);
                   }}
                   placeholder={t({ th: "จำนวนที่ต้องการ", en: "Custom amount" })}
-                  className="w-full bg-[#1A1A1A] border border-[#333] text-white rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:border-orange-500 transition"
+                  className="w-full bg-[var(--bg-card-inner)] border border-[var(--border-secondary)] text-white rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:border-orange-500 transition"
                   disabled={loading || isAtLimit}
                 />
               </div>
@@ -388,7 +388,7 @@ export default function CreateContractPage() {
 
             {/* Escrow Info Box */}
             {stakes > 0 && (
-              <div className="bg-[#111111] border border-[#1A1A1A] rounded-xl p-4 space-y-3">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-4 space-y-3">
                 <div className="flex items-center gap-2">
                   <span className="text-orange-500 text-lg">&#128274;</span>
                   <span className="text-white font-semibold text-sm">

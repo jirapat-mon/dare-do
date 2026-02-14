@@ -219,7 +219,7 @@ export default function RewardsPage() {
   if (loading) {
     return (
       <AuthGuard>
-        <div className="min-h-screen bg-[#0A0A0A] text-white flex items-center justify-center">
+        <div className="min-h-screen bg-[var(--bg-primary)] text-white flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
             <p className="text-gray-400">
@@ -233,7 +233,7 @@ export default function RewardsPage() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-[#0A0A0A] text-white">
+      <div className="min-h-screen bg-[var(--bg-primary)] text-white">
         <div className="max-w-5xl mx-auto px-4 py-8">
           {/* Header */}
           <div className="mb-8">
@@ -302,7 +302,7 @@ export default function RewardsPage() {
                 className={`px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
                   activeCategory === cat.key
                     ? "bg-orange-500 text-white"
-                    : "bg-[#111111] text-gray-400 border border-[#1A1A1A] hover:border-orange-500/50 hover:text-white"
+                    : "bg-[var(--bg-secondary)] text-gray-400 border border-[var(--border-primary)] hover:border-orange-500/50 hover:text-white"
                 }`}
               >
                 {t(cat.label)}
@@ -333,7 +333,7 @@ export default function RewardsPage() {
                     onClick={() =>
                       !outOfStock ? openRedeemModal(reward) : undefined
                     }
-                    className={`bg-[#111111] border border-[#1A1A1A] rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer group ${
+                    className={`bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer group ${
                       outOfStock
                         ? "opacity-50 cursor-not-allowed"
                         : "hover:border-orange-500 hover:shadow-lg hover:shadow-orange-500/10"
@@ -404,10 +404,10 @@ export default function RewardsPage() {
                         disabled={!canAfford || outOfStock}
                         className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
                           outOfStock
-                            ? "bg-[#222] text-gray-600 cursor-not-allowed"
+                            ? "bg-[var(--bg-card-inner)] text-gray-600 cursor-not-allowed"
                             : canAfford
                               ? "bg-orange-500 hover:bg-orange-400 text-white active:scale-95"
-                              : "bg-[#222] text-gray-500 cursor-not-allowed"
+                              : "bg-[var(--bg-card-inner)] text-gray-500 cursor-not-allowed"
                         }`}
                       >
                         {outOfStock
@@ -433,7 +433,7 @@ export default function RewardsPage() {
             </h2>
 
             {redemptions.length === 0 ? (
-              <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-8 text-center">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-8 text-center">
                 <div className="text-gray-500 mb-2">
                   <svg
                     className="w-12 h-12 mx-auto mb-3 text-gray-600"
@@ -467,7 +467,7 @@ export default function RewardsPage() {
                   return (
                     <div
                       key={redemption.id}
-                      className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 flex items-center gap-4"
+                      className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4 flex items-center gap-4"
                     >
                       {/* Reward Image */}
                       <div className="w-16 h-16 flex-shrink-0 rounded-xl overflow-hidden">
@@ -540,7 +540,7 @@ export default function RewardsPage() {
             onClick={closeModal}
           >
             <div
-              className="bg-[#111111] border border-[#1A1A1A] rounded-2xl max-w-md w-full overflow-hidden"
+              className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl max-w-md w-full overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               {redeemSuccess ? (
@@ -626,7 +626,7 @@ export default function RewardsPage() {
                     </p>
 
                     {/* Points Cost */}
-                    <div className="bg-[#0A0A0A] rounded-xl p-3 flex items-center justify-between mb-4">
+                    <div className="bg-[var(--bg-primary)] rounded-xl p-3 flex items-center justify-between mb-4">
                       <span className="text-gray-400 text-sm">
                         {t({ th: "ใช้ Points", en: "Points Required" })}
                       </span>
@@ -645,7 +645,7 @@ export default function RewardsPage() {
                     </div>
 
                     {/* Your Balance */}
-                    <div className="bg-[#0A0A0A] rounded-xl p-3 flex items-center justify-between mb-4">
+                    <div className="bg-[var(--bg-primary)] rounded-xl p-3 flex items-center justify-between mb-4">
                       <span className="text-gray-400 text-sm">
                         {t({ th: "Points คงเหลือ", en: "Your Balance" })}
                       </span>
@@ -673,7 +673,7 @@ export default function RewardsPage() {
                             en: "Enter your shipping address...",
                           })}
                           rows={3}
-                          className="w-full bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-orange-500 transition resize-none"
+                          className="w-full bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-orange-500 transition resize-none"
                         />
                       </div>
                     )}
@@ -689,7 +689,7 @@ export default function RewardsPage() {
                     <div className="flex gap-3">
                       <button
                         onClick={closeModal}
-                        className="flex-1 border border-[#333] text-gray-400 hover:text-white hover:border-white py-3 rounded-xl font-semibold transition"
+                        className="flex-1 border border-[var(--border-secondary)] text-gray-400 hover:text-white hover:border-white py-3 rounded-xl font-semibold transition"
                       >
                         {t({ th: "ยกเลิก", en: "Cancel" })}
                       </button>
@@ -701,7 +701,7 @@ export default function RewardsPage() {
                         className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
                           userPoints >= selectedReward.pointsCost && !redeeming
                             ? "bg-orange-500 hover:bg-orange-400 text-white active:scale-95"
-                            : "bg-[#333] text-gray-500 cursor-not-allowed"
+                            : "bg-[var(--bg-card-inner)] text-gray-500 cursor-not-allowed"
                         }`}
                       >
                         {redeeming

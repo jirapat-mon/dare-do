@@ -187,7 +187,7 @@ export default function ProvincePage() {
             {/* ============================================ */}
             {heatmap?.national && (
               <div className="grid grid-cols-2 gap-3 mb-6">
-                <div className="bg-[#111] border border-[#222] rounded-xl p-4 text-center">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-4 text-center">
                   <p className="text-2xl font-bold text-orange-400">
                     {formatNumber(heatmap.national.totalUsers)}
                   </p>
@@ -195,7 +195,7 @@ export default function ProvincePage() {
                     {t("province.totalUsers")}
                   </p>
                 </div>
-                <div className="bg-[#111] border border-[#222] rounded-xl p-4 text-center">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-4 text-center">
                   <p className="text-2xl font-bold text-orange-400">
                     {formatNumber(heatmap.national.totalPoints)}
                   </p>
@@ -222,7 +222,7 @@ export default function ProvincePage() {
                   className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition ${
                     regionFilter === key
                       ? "border-white/30 bg-white/10"
-                      : "border-[#333] hover:border-white/20"
+                      : "border-[var(--border-secondary)] hover:border-white/20"
                   }`}
                 >
                   <span
@@ -240,7 +240,7 @@ export default function ProvincePage() {
             {/* SECTION 1: Thailand Heatmap (Hero)           */}
             {/* ============================================ */}
             {heatmap && (
-              <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-2xl p-4 sm:p-6 mb-8">
+              <div className="bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-2xl p-4 sm:p-6 mb-8">
                 <ThailandHeatmap
                   data={heatmapProvinces.map((p) => ({
                     code: p.code,
@@ -261,7 +261,7 @@ export default function ProvincePage() {
             {selectedProvinceData && (
               <div
                 ref={detailRef}
-                className="bg-[#111] border border-[#222] rounded-2xl p-5 mb-8"
+                className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-5 mb-8"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
@@ -289,7 +289,7 @@ export default function ProvincePage() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-[#0A0A0A] rounded-xl p-3 text-center">
+                  <div className="bg-[var(--bg-primary)] rounded-xl p-3 text-center">
                     <p className="text-lg font-bold text-orange-400">
                       {selectedStats
                         ? formatNumber(selectedStats.totalPoints)
@@ -299,7 +299,7 @@ export default function ProvincePage() {
                       {t("province.totalPoints")}
                     </p>
                   </div>
-                  <div className="bg-[#0A0A0A] rounded-xl p-3 text-center">
+                  <div className="bg-[var(--bg-primary)] rounded-xl p-3 text-center">
                     <p className="text-lg font-bold text-blue-400">
                       {selectedStats
                         ? formatNumber(selectedStats.userCount)
@@ -309,7 +309,7 @@ export default function ProvincePage() {
                       {t("province.totalUsers")}
                     </p>
                   </div>
-                  <div className="bg-[#0A0A0A] rounded-xl p-3 text-center">
+                  <div className="bg-[var(--bg-primary)] rounded-xl p-3 text-center">
                     <p className="text-lg font-bold text-yellow-400">
                       {selectedRank ? `#${selectedRank}` : "—"}
                     </p>
@@ -324,7 +324,7 @@ export default function ProvincePage() {
             {/* ============================================ */}
             {/* SECTION 3: My Province Card                  */}
             {/* ============================================ */}
-            <div className="bg-[#111] border border-[#222] rounded-2xl p-5 mb-8">
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-5 mb-8">
               <h2 className="text-lg font-bold mb-4">
                 {t("province.myProvince")}
               </h2>
@@ -355,7 +355,7 @@ export default function ProvincePage() {
                   })()}
 
                   <div className="grid grid-cols-2 gap-3 mb-4">
-                    <div className="bg-[#0A0A0A] rounded-xl p-3 text-center">
+                    <div className="bg-[var(--bg-primary)] rounded-xl p-3 text-center">
                       <p className="text-lg font-bold text-orange-400">
                         {myProvince.provinceRank
                           ? `#${myProvince.provinceRank}`
@@ -365,7 +365,7 @@ export default function ProvincePage() {
                         {t("province.yourRank")}
                       </p>
                     </div>
-                    <div className="bg-[#0A0A0A] rounded-xl p-3 text-center">
+                    <div className="bg-[var(--bg-primary)] rounded-xl p-3 text-center">
                       <p className="text-lg font-bold text-yellow-400">
                         {myProvince.nationalRank
                           ? `#${myProvince.nationalRank}`
@@ -386,7 +386,7 @@ export default function ProvincePage() {
                       value={myProvince.province}
                       onChange={(e) => handleUpdateProvince(e.target.value)}
                       disabled={saving}
-                      className="w-full bg-[#0A0A0A] border border-[#333] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition disabled:opacity-50"
+                      className="w-full bg-[var(--bg-primary)] border border-[var(--border-secondary)] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition disabled:opacity-50"
                     >
                       <option value="">
                         {locale === "th" ? "เลือกจังหวัด" : "Select province"}
@@ -408,7 +408,7 @@ export default function ProvincePage() {
                     value=""
                     onChange={(e) => handleUpdateProvince(e.target.value)}
                     disabled={saving}
-                    className="w-full bg-[#0A0A0A] border border-[#333] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition disabled:opacity-50"
+                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-secondary)] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition disabled:opacity-50"
                   >
                     <option value="">
                       {locale === "th" ? "เลือกจังหวัด" : "Select province"}
@@ -440,7 +440,7 @@ export default function ProvincePage() {
                     className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition ${
                       regionFilter === tab.key
                         ? "bg-orange-500 text-white"
-                        : "bg-[#1A1A1A] text-gray-400 hover:bg-[#222] hover:text-gray-300"
+                        : "bg-[var(--bg-card-inner)] text-gray-400 hover:bg-[#222] hover:text-gray-300"
                     }`}
                   >
                     {tab.key !== "all" && (
@@ -459,9 +459,9 @@ export default function ProvincePage() {
 
               {/* Table */}
               {filteredLeaderboard.length > 0 ? (
-                <div className="rounded-xl border border-[#1A1A1A] overflow-hidden">
+                <div className="rounded-xl border border-[var(--border-primary)] overflow-hidden">
                   {/* Header */}
-                  <div className="grid grid-cols-[40px_1fr_70px_80px_70px] sm:grid-cols-[50px_1fr_90px_100px_90px] gap-1 px-3 py-2 bg-[#0A0A0A] border-b border-[#1A1A1A] text-[10px] sm:text-xs text-gray-500 font-medium">
+                  <div className="grid grid-cols-[40px_1fr_70px_80px_70px] sm:grid-cols-[50px_1fr_90px_100px_90px] gap-1 px-3 py-2 bg-[var(--bg-primary)] border-b border-[var(--border-primary)] text-[10px] sm:text-xs text-gray-500 font-medium">
                     <span>#</span>
                     <span>{locale === "th" ? "จังหวัด" : "Province"}</span>
                     <span className="text-right">
@@ -492,8 +492,8 @@ export default function ProvincePage() {
                             : isSelectedProv
                               ? "bg-white/5"
                               : idx % 2 === 0
-                                ? "bg-[#0A0A0A]"
-                                : "bg-[#111]"
+                                ? "bg-[var(--bg-primary)]"
+                                : "bg-[var(--bg-secondary)]"
                         } hover:bg-white/5`}
                       >
                         <span className="text-sm font-bold text-gray-500 tabular-nums">

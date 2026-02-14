@@ -7,9 +7,9 @@ export const metadata = {
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-[#0A0A0A] text-white">
+    <main className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
       {/* Header */}
-      <div className="border-b border-[#1A1A1A] py-6 px-4">
+      <div className="border-b border-[var(--border-primary)] py-6 px-4">
         <div className="max-w-4xl mx-auto flex items-center gap-4">
           <Link
             href="/"
@@ -23,7 +23,7 @@ export default function TermsPage() {
 
       <div className="max-w-4xl mx-auto px-4 py-12">
         {/* Important Notice */}
-        <div className="bg-[#111111] border border-orange-500/30 rounded-2xl p-6 mb-12">
+        <div className="bg-[var(--bg-secondary)] border border-orange-500/30 rounded-2xl p-6 mb-12">
           <p className="text-orange-500 font-bold text-lg mb-2">
             ข้อความสำคัญ
           </p>
@@ -68,7 +68,7 @@ export default function TermsPage() {
             ไม่ใช่การพนัน — เหตุผลทางกฎหมาย
           </h2>
           <div className="text-gray-300 leading-relaxed space-y-4 pl-11">
-            <div className="bg-[#111111] border border-[#1A1A1A] rounded-xl p-5 space-y-3">
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-5 space-y-3">
               <div className="flex items-start gap-3">
                 <span className="text-green-500 mt-1">✓</span>
                 <p>
@@ -154,7 +154,7 @@ export default function TermsPage() {
           </h2>
           <div className="text-gray-300 leading-relaxed space-y-4 pl-11">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-[#111111] border border-green-500/20 rounded-xl p-5">
+              <div className="bg-[var(--bg-secondary)] border border-green-500/20 rounded-xl p-5">
                 <p className="text-green-500 font-bold mb-2">
                   ทำสำเร็จ ✓
                 </p>
@@ -163,7 +163,7 @@ export default function TermsPage() {
                   ภายใน 7 วันทำการ
                 </p>
               </div>
-              <div className="bg-[#111111] border border-red-500/20 rounded-xl p-5">
+              <div className="bg-[var(--bg-secondary)] border border-red-500/20 rounded-xl p-5">
                 <p className="text-red-500 font-bold mb-2">
                   ไม่สำเร็จ ✗
                 </p>
@@ -249,7 +249,7 @@ export default function TermsPage() {
         </section>
 
         {/* Last Updated */}
-        <div className="text-center text-gray-600 text-sm border-t border-[#1A1A1A] pt-8">
+        <div className="text-center text-gray-600 text-sm border-t border-[var(--border-primary)] pt-8">
           <p>อัปเดตล่าสุด: กุมภาพันธ์ 2025</p>
           <Link
             href="/"

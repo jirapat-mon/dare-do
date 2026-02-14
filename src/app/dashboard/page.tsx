@@ -155,10 +155,10 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <AuthGuard>
-        <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+        <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-            <p className="text-gray-400">
+            <p className="text-[var(--text-secondary)]">
               {t({ th: "กำลังโหลด...", en: "Loading..." } as any)}
             </p>
           </div>
@@ -169,12 +169,12 @@ export default function DashboardPage() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-[#0A0A0A]">
+      <div className="min-h-screen bg-[var(--bg-primary)]">
         <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
 
           {/* ===== 1. Profile Summary Hero Card ===== */}
           <div
-            className="relative overflow-hidden rounded-2xl p-6 mb-6 border border-[#1A1A1A]"
+            className="relative overflow-hidden rounded-2xl p-6 mb-6 border border-[var(--border-primary)]"
             style={{
               background:
                 "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%)",
@@ -198,10 +198,10 @@ export default function DashboardPage() {
                   showFrame={true}
                 />
                 <div className="flex-1 min-w-0">
-                  <h1 className="text-xl font-bold text-white truncate">
+                  <h1 className="text-xl font-bold text-[var(--text-primary)] truncate">
                     {user?.name || t({ th: "ผู้ใช้", en: "User" } as any)}
                   </h1>
-                  <p className="text-sm text-gray-400 truncate">{user?.email}</p>
+                  <p className="text-sm text-[var(--text-secondary)] truncate">{user?.email}</p>
                 </div>
                 <RankBadge lifetimePoints={lifetimePoints} size="lg" />
               </div>
@@ -211,9 +211,9 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-2">
                   <StreakFire streak={currentStreak} size="md" />
                   <div>
-                    <p className="text-sm font-semibold text-white">
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">
                       {currentStreak}{" "}
-                      <span className="text-gray-400 font-normal">
+                      <span className="text-[var(--text-secondary)] font-normal">
                         {t({ th: "วัน", en: "days" } as any)}
                       </span>
                     </p>
@@ -223,12 +223,12 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="w-px h-8 bg-[#333]" />
+                <div className="w-px h-8 bg-[var(--border-secondary)]" />
 
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-white">
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">
                     {totalPoints.toLocaleString()}{" "}
-                    <span className="text-gray-400 font-normal">pts</span>
+                    <span className="text-[var(--text-secondary)] font-normal">pts</span>
                   </p>
                   {hasMultiplier && (
                     <span
@@ -255,7 +255,7 @@ export default function DashboardPage() {
               {/* Rank progress bar */}
               {nextRank ? (
                 <div>
-                  <div className="bg-[#1A1A1A] rounded-full h-2 overflow-hidden mb-1.5">
+                  <div className="bg-[var(--bg-card-inner)] rounded-full h-2 overflow-hidden mb-1.5">
                     <div
                       className="h-2 rounded-full transition-all duration-700"
                       style={{
@@ -284,7 +284,7 @@ export default function DashboardPage() {
           {/* ===== 2. Quick Stats Row ===== */}
           <div className="grid grid-cols-4 gap-3 mb-6">
             {/* Active Contracts */}
-            <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-3 text-center">
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-3 text-center">
               <p className="text-xl font-bold text-white">
                 {activeContracts.length}
               </p>
@@ -294,7 +294,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Streak Days */}
-            <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-3 text-center">
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-3 text-center">
               <p className="text-xl font-bold text-orange-400">
                 {currentStreak}
               </p>
@@ -304,7 +304,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Total Points */}
-            <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-3 text-center">
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-3 text-center">
               <p className="text-xl font-bold text-yellow-400">
                 {totalPoints.toLocaleString()}
               </p>
@@ -315,7 +315,7 @@ export default function DashboardPage() {
 
             {/* Wallet Balance */}
             <Link href="/wallet">
-              <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-3 text-center hover:border-orange-500/30 transition-colors group cursor-pointer">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-3 text-center hover:border-orange-500/30 transition-colors group cursor-pointer">
                 <p className="text-xl font-bold text-green-400 group-hover:text-green-300 transition-colors">
                   {wallet?.balance?.toLocaleString() ?? 0}
                 </p>
@@ -356,7 +356,7 @@ export default function DashboardPage() {
 
             <Link
               href="/leaderboard"
-              className="flex items-center justify-center gap-2 border border-[#333] hover:border-orange-500/40 text-gray-300 hover:text-white font-semibold rounded-2xl px-4 py-3.5 transition-all bg-[#111111]"
+              className="flex items-center justify-center gap-2 border border-[var(--border-secondary)] hover:border-orange-500/40 text-gray-300 hover:text-white font-semibold rounded-2xl px-4 py-3.5 transition-all bg-[var(--bg-secondary)]"
             >
               <svg
                 className="w-5 h-5"
@@ -392,7 +392,7 @@ export default function DashboardPage() {
 
             <div className="space-y-3">
               {activeContracts.length === 0 ? (
-                <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-8 text-center">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-8 text-center">
                   <div className="text-4xl mb-3 opacity-50">
                     <svg
                       className="w-12 h-12 mx-auto text-gray-600"
@@ -434,7 +434,7 @@ export default function DashboardPage() {
                   return (
                     <div
                       key={contract.id}
-                      className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 hover:border-[#2A2A2A] transition-colors"
+                      className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4 hover:border-[var(--border-secondary)] transition-colors"
                     >
                       {/* Header: Goal + Status */}
                       <div className="flex items-start justify-between mb-3">
@@ -448,7 +448,7 @@ export default function DashboardPage() {
 
                       {/* Progress Bar */}
                       <div className="mb-3">
-                        <div className="bg-[#1A1A1A] rounded-full h-2">
+                        <div className="bg-[var(--bg-card-inner)] rounded-full h-2">
                           <div
                             className="rounded-full h-2 transition-all duration-500"
                             style={{
@@ -601,7 +601,7 @@ export default function DashboardPage() {
                     return (
                       <div
                         key={contract.id}
-                        className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 opacity-75"
+                        className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4 opacity-75"
                       >
                         {/* Header */}
                         <div className="flex items-start justify-between mb-2">
@@ -621,7 +621,7 @@ export default function DashboardPage() {
 
                         {/* Progress Bar */}
                         <div className="mb-2">
-                          <div className="bg-[#1A1A1A] rounded-full h-1.5">
+                          <div className="bg-[var(--bg-card-inner)] rounded-full h-1.5">
                             <div
                               className={`rounded-full h-1.5 transition-all duration-500 ${
                                 isSuccess
@@ -682,7 +682,7 @@ export default function DashboardPage() {
           )}
 
           {/* ===== 6. Recent Badges ===== */}
-          <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-5">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-bold text-white">
                 {t({
@@ -714,7 +714,7 @@ export default function DashboardPage() {
                   return (
                     <div
                       key={badge.id}
-                      className="bg-[#1A1A1A] border border-[#222] rounded-xl p-3 text-center hover:border-orange-500/30 transition-colors"
+                      className="bg-[var(--bg-card-inner)] border border-[var(--border-primary)] rounded-xl p-3 text-center hover:border-orange-500/30 transition-colors"
                     >
                       <div className="text-3xl mb-1">{def.icon}</div>
                       <p className="text-xs font-medium text-white truncate">
@@ -734,7 +734,7 @@ export default function DashboardPage() {
         {/* Cancel Contract Confirmation Modal */}
         {cancelConfirm && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6 max-w-md w-full">
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-6 max-w-md w-full">
               <div className="text-center mb-6">
                 <div className="text-4xl mb-3">&#9888;&#65039;</div>
                 <h3 className="text-xl font-bold text-white mb-2">
@@ -749,7 +749,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Contract info */}
-              <div className="bg-[#1A1A1A] rounded-xl p-4 mb-4">
+              <div className="bg-[var(--bg-card-inner)] rounded-xl p-4 mb-4">
                 <p className="font-semibold text-white mb-2">
                   {cancelConfirm.goal}
                 </p>
@@ -819,7 +819,7 @@ export default function DashboardPage() {
                   </p>
                 </div>
               ) : (
-                <div className="bg-[#1A1A1A] rounded-xl p-4 mb-6">
+                <div className="bg-[var(--bg-card-inner)] rounded-xl p-4 mb-6">
                   <p className="text-sm text-gray-400 text-center">
                     {t({
                       th: "ไม่มีเงินเดิมพัน — ไม่มีค่าใช้จ่าย",
@@ -832,7 +832,7 @@ export default function DashboardPage() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setCancelConfirm(null)}
-                  className="flex-1 border border-[#333] text-gray-400 hover:text-white hover:border-white rounded-full py-3 font-semibold transition"
+                  className="flex-1 border border-[var(--border-secondary)] text-gray-400 hover:text-white hover:border-white rounded-full py-3 font-semibold transition"
                 >
                   {t({ th: "ไม่ยกเลิก", en: "Keep Contract" } as any)}
                 </button>

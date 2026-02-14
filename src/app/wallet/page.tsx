@@ -435,7 +435,7 @@ function WalletContent() {
   if (loading) {
     return (
       <AuthGuard>
-        <div className="min-h-screen bg-[#0A0A0A] text-white flex items-center justify-center">
+        <div className="min-h-screen bg-[var(--bg-primary)] text-white flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
             <p className="text-gray-400">{t({ th: "กำลังโหลด...", en: "Loading..." })}</p>
@@ -455,7 +455,7 @@ function WalletContent() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-[#0A0A0A] text-white">
+      <div className="min-h-screen bg-[var(--bg-primary)] text-white">
         <div className="max-w-2xl mx-auto px-4 py-8">
           {/* Subscription Success Banner */}
           {subscriptionStatus === "success" && (
@@ -503,7 +503,7 @@ function WalletContent() {
               <button
                 onClick={() => setShowWithdraw(true)}
                 disabled={(wallet?.balance || 0) < 20}
-                className="flex-1 border border-[#333] text-gray-300 hover:text-white hover:border-white font-semibold rounded-full py-3 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 border border-[var(--border-secondary)] text-gray-300 hover:text-white hover:border-white font-semibold rounded-full py-3 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {t({ th: "ถอนเงิน", en: "Withdraw" })}
               </button>
@@ -513,14 +513,14 @@ function WalletContent() {
           {/* Top-up Modal */}
           {showTopup && (
             <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6 max-w-md w-full">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-6 max-w-md w-full">
                 <h3 className="text-xl font-bold mb-4">{t({ th: "เติมเงิน", en: "Top Up" })}</h3>
                 <div className="flex flex-wrap gap-2 mb-4">
                   {[50, 100, 200, 500, 1000, 2000].map((amt) => (
                     <button
                       key={amt}
                       onClick={() => setTopupAmount(amt)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition ${topupAmount === amt ? "bg-green-500 text-white" : "bg-[#1A1A1A] text-gray-400 border border-[#333] hover:border-green-500"}`}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition ${topupAmount === amt ? "bg-green-500 text-white" : "bg-[var(--bg-card-inner)] text-gray-400 border border-[var(--border-secondary)] hover:border-green-500"}`}
                     >
                       &#3647;{amt.toLocaleString()}
                     </button>
@@ -532,11 +532,11 @@ function WalletContent() {
                   onChange={(e) => setTopupAmount(Number(e.target.value))}
                   min={20}
                   max={100000}
-                  className="w-full bg-[#1A1A1A] border border-[#333] rounded-xl px-4 py-3 text-white mb-4 focus:outline-none focus:border-green-500"
+                  className="w-full bg-[var(--bg-card-inner)] border border-[var(--border-secondary)] rounded-xl px-4 py-3 text-white mb-4 focus:outline-none focus:border-green-500"
                   placeholder="฿"
                 />
                 <div className="flex gap-3">
-                  <button onClick={() => setShowTopup(false)} className="flex-1 border border-[#333] text-gray-400 rounded-full py-3 font-semibold transition hover:text-white hover:border-white">
+                  <button onClick={() => setShowTopup(false)} className="flex-1 border border-[var(--border-secondary)] text-gray-400 rounded-full py-3 font-semibold transition hover:text-white hover:border-white">
                     {t({ th: "ยกเลิก", en: "Cancel" })}
                   </button>
                   <button onClick={handleTopup} disabled={topupLoading || topupAmount < 20} className="flex-1 bg-green-600 hover:bg-green-500 text-white rounded-full py-3 font-semibold transition disabled:opacity-50">
@@ -550,17 +550,17 @@ function WalletContent() {
           {/* Withdraw Modal */}
           {showWithdraw && (
             <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6 max-w-md w-full">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-6 max-w-md w-full">
                 <h3 className="text-xl font-bold mb-2">{t({ th: "ถอนเงิน", en: "Withdraw" })}</h3>
                 <p className="text-xs text-gray-500 mb-4">{t({ th: "ใช้เวลาดำเนินการไม่เกิน 24 ชั่วโมง", en: "Processing time up to 24 hours" })}</p>
                 <div className="space-y-3 mb-4">
                   <div>
                     <label className="text-xs text-gray-400 mb-1 block">{t({ th: "จำนวนเงิน (ขั้นต่ำ ฿20)", en: "Amount (min ฿20)" })}</label>
-                    <input type="number" value={withdrawAmount} onChange={(e) => setWithdrawAmount(Number(e.target.value))} min={20} max={wallet?.balance || 0} className="w-full bg-[#1A1A1A] border border-[#333] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500" />
+                    <input type="number" value={withdrawAmount} onChange={(e) => setWithdrawAmount(Number(e.target.value))} min={20} max={wallet?.balance || 0} className="w-full bg-[var(--bg-card-inner)] border border-[var(--border-secondary)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500" />
                   </div>
                   <div>
                     <label className="text-xs text-gray-400 mb-1 block">{t({ th: "ธนาคาร", en: "Bank" })}</label>
-                    <select value={withdrawBank} onChange={(e) => setWithdrawBank(e.target.value)} className="w-full bg-[#1A1A1A] border border-[#333] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500">
+                    <select value={withdrawBank} onChange={(e) => setWithdrawBank(e.target.value)} className="w-full bg-[var(--bg-card-inner)] border border-[var(--border-secondary)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500">
                       <option value="">{t({ th: "เลือกธนาคาร", en: "Select bank" })}</option>
                       <option value="SCB">SCB ไทยพาณิชย์</option>
                       <option value="KBANK">KBANK กสิกร</option>
@@ -573,18 +573,18 @@ function WalletContent() {
                   </div>
                   <div>
                     <label className="text-xs text-gray-400 mb-1 block">{t({ th: "เลขบัญชี", en: "Account number" })}</label>
-                    <input type="text" value={withdrawAccount} onChange={(e) => setWithdrawAccount(e.target.value)} placeholder="xxx-x-xxxxx-x" className="w-full bg-[#1A1A1A] border border-[#333] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500" />
+                    <input type="text" value={withdrawAccount} onChange={(e) => setWithdrawAccount(e.target.value)} placeholder="xxx-x-xxxxx-x" className="w-full bg-[var(--bg-card-inner)] border border-[var(--border-secondary)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500" />
                   </div>
                   <div>
                     <label className="text-xs text-gray-400 mb-1 block">{t({ th: "ชื่อบัญชี", en: "Account name" })}</label>
-                    <input type="text" value={withdrawName} onChange={(e) => setWithdrawName(e.target.value)} className="w-full bg-[#1A1A1A] border border-[#333] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500" />
+                    <input type="text" value={withdrawName} onChange={(e) => setWithdrawName(e.target.value)} className="w-full bg-[var(--bg-card-inner)] border border-[var(--border-secondary)] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500" />
                   </div>
                 </div>
                 <p className="text-xs text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 mb-4">
                   {t({ th: "หลังจากส่งคำขอ เงินจะถูกหักจากยอดถอนได้ทันที และจะโอนเข้าบัญชีภายใน 24 ชั่วโมง", en: "After submitting, the amount will be deducted immediately and transferred within 24 hours" })}
                 </p>
                 <div className="flex gap-3">
-                  <button onClick={() => { setShowWithdraw(false); setWithdrawMsg(null); }} className="flex-1 border border-[#333] text-gray-400 rounded-full py-3 font-semibold transition hover:text-white hover:border-white">
+                  <button onClick={() => { setShowWithdraw(false); setWithdrawMsg(null); }} className="flex-1 border border-[var(--border-secondary)] text-gray-400 rounded-full py-3 font-semibold transition hover:text-white hover:border-white">
                     {t({ th: "ยกเลิก", en: "Cancel" })}
                   </button>
                   <button onClick={handleWithdraw} disabled={withdrawLoading || withdrawAmount < 20 || !withdrawBank || !withdrawAccount || !withdrawName || withdrawAmount > (wallet?.balance || 0)} className="flex-1 bg-orange-500 hover:bg-orange-400 text-white rounded-full py-3 font-semibold transition disabled:opacity-50">
@@ -596,7 +596,7 @@ function WalletContent() {
           )}
 
           {/* Subscription Status Card */}
-          <div className="bg-gradient-to-br from-[#1a1a2e] to-[#16213e] border border-[#1A1A1A] rounded-2xl p-6 mb-6">
+          <div className="bg-gradient-to-br from-[#1a1a2e] to-[#16213e] border border-[var(--border-primary)] rounded-2xl p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <h1 className="text-xl font-semibold">
                 {t({ th: "สมาชิก DareDo", en: "DareDo Membership" })}
@@ -641,7 +641,7 @@ function WalletContent() {
                   <button
                     onClick={handleCancel}
                     disabled={cancelLoading}
-                    className="flex-1 border border-[#333] text-gray-400 px-6 py-3 rounded-full font-semibold hover:text-white hover:border-white transition text-sm disabled:opacity-50"
+                    className="flex-1 border border-[var(--border-secondary)] text-gray-400 px-6 py-3 rounded-full font-semibold hover:text-white hover:border-white transition text-sm disabled:opacity-50"
                   >
                     {cancelLoading
                       ? t({ th: "กำลังยกเลิก...", en: "Cancelling..." })
@@ -668,7 +668,7 @@ function WalletContent() {
           </div>
 
           {/* Points Card */}
-          <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6 mb-6">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <span className="text-3xl">⭐</span>
@@ -719,7 +719,7 @@ function WalletContent() {
                   t({ th: "แร้งค์สูงสุดแล้ว!", en: "Max rank reached!" })
                 )}
               </div>
-              <div className="w-full bg-[#1A1A1A] rounded-full h-2 overflow-hidden">
+              <div className="w-full bg-[var(--bg-card-inner)] rounded-full h-2 overflow-hidden">
                 <div
                   className="bg-orange-500 h-full transition-all duration-300"
                   style={{ width: `${rankProgress}%` }}
@@ -729,7 +729,7 @@ function WalletContent() {
           </div>
 
           {/* Streak Section */}
-          <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6 mb-6">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">
                 {t({ th: "ความต่อเนื่อง", en: "Streak" })}
@@ -760,7 +760,7 @@ function WalletContent() {
                         ? "bg-orange-500"
                         : status === "today"
                           ? "bg-orange-500/50 ring-2 ring-orange-500"
-                          : "bg-[#1A1A1A]"
+                          : "bg-[var(--bg-card-inner)]"
                     }
                   `}
                   title={`Day ${i + 1}`}
@@ -771,7 +771,7 @@ function WalletContent() {
 
           {/* Streak Insurance Card */}
           {tier !== "free" ? (
-            <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6 mb-6">
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-6 mb-6">
               <div className="flex items-center gap-3 mb-3">
                 <span className="text-2xl">🛡️</span>
                 <h2 className="text-xl font-bold">
@@ -802,7 +802,7 @@ function WalletContent() {
                   <select
                     value={selectedContractId}
                     onChange={(e) => setSelectedContractId(e.target.value)}
-                    className="w-full bg-[#1A1A1A] border border-[#333] text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 transition"
+                    className="w-full bg-[var(--bg-card-inner)] border border-[var(--border-secondary)] text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 transition"
                   >
                     {contracts.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -855,7 +855,7 @@ function WalletContent() {
               </button>
             </div>
           ) : (
-            <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6 mb-6">
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-6 mb-6">
               <div className="flex items-center gap-3 mb-3">
                 <span className="text-2xl opacity-50">🛡️</span>
                 <h2 className="text-xl font-bold text-gray-500">
@@ -878,13 +878,13 @@ function WalletContent() {
           )}
 
           {/* Transaction History (Points Activity) */}
-          <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl overflow-hidden">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl overflow-hidden">
             <div className="p-6 pb-4">
               <h2 className="text-xl font-bold">
                 {t({ th: "ประวัติกิจกรรม", en: "Activity History" })}
               </h2>
             </div>
-            <div className="divide-y divide-[#1A1A1A]">
+            <div className="divide-y divide-[var(--border-primary)]">
               {transactions.length === 0 ? (
                 <div className="px-6 py-8 text-center text-gray-400">
                   {t({

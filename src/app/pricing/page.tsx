@@ -123,7 +123,7 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white">
+    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
       <div className="max-w-5xl mx-auto px-4 py-16">
         {/* Header */}
         <div className="text-center mb-16">
@@ -146,7 +146,7 @@ export default function PricingPage() {
               className={`relative rounded-2xl p-8 transition-all ${
                 plan.popular
                   ? "bg-gradient-to-b from-orange-500/10 to-[#111111] border-2 border-orange-500 scale-105 md:scale-110 z-10"
-                  : "bg-[#111111] border border-[#1A1A1A]"
+                  : "bg-[var(--bg-secondary)] border border-[var(--border-primary)]"
               }`}
             >
               {/* Popular Badge */}
@@ -180,7 +180,7 @@ export default function PricingPage() {
               </div>
 
               {/* Points per month */}
-              <div className={`rounded-xl px-4 py-3 mb-3 ${plan.pointsPerMonth > 0 ? "bg-orange-500/10 border border-orange-500/30" : "bg-[#1A1A1A]"}`}>
+              <div className={`rounded-xl px-4 py-3 mb-3 ${plan.pointsPerMonth > 0 ? "bg-orange-500/10 border border-orange-500/30" : "bg-[var(--bg-card-inner)]"}`}>
                 <div className="flex items-center gap-2">
                   <svg
                     className={`w-4 h-4 ${plan.pointsPerMonth > 0 ? "text-orange-500" : "text-gray-500"}`}
@@ -198,7 +198,7 @@ export default function PricingPage() {
               </div>
 
               {/* Contract Limit */}
-              <div className="bg-[#1A1A1A] rounded-xl px-4 py-3 mb-6">
+              <div className="bg-[var(--bg-card-inner)] rounded-xl px-4 py-3 mb-6">
                 <span className="text-sm text-gray-400">
                   {t({ th: "สัญญาสูงสุด", en: "Max Contracts" })}
                 </span>
@@ -237,7 +237,7 @@ export default function PricingPage() {
               {plan.tier === "free" ? (
                 <Link
                   href={isLoggedIn ? "/dashboard" : "/login"}
-                  className="block text-center w-full border border-[#333] text-gray-400 hover:text-white hover:border-white rounded-full py-3 font-semibold transition"
+                  className="block text-center w-full border border-[var(--border-secondary)] text-gray-400 hover:text-white hover:border-white rounded-full py-3 font-semibold transition"
                 >
                   {isLoggedIn
                     ? t({ th: "แพลนปัจจุบัน", en: "Current Plan" })
@@ -284,7 +284,7 @@ export default function PricingPage() {
                 href="/rewards"
                 className="group"
               >
-                <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden bg-[#111111] border border-[#1A1A1A] group-hover:border-orange-500 transition-all duration-300 mb-2">
+                <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden bg-[var(--bg-secondary)] border border-[var(--border-primary)] group-hover:border-orange-500 transition-all duration-300 mb-2">
                   <img
                     src={reward.image}
                     alt={reward.name[locale]}
@@ -312,7 +312,7 @@ export default function PricingPage() {
 
           <Link
             href="/rewards"
-            className="inline-flex items-center gap-2 bg-[#111111] border border-[#1A1A1A] hover:border-orange-500 text-white px-6 py-3 rounded-full font-semibold transition-all"
+            className="inline-flex items-center gap-2 bg-[var(--bg-secondary)] border border-[var(--border-primary)] hover:border-orange-500 text-white px-6 py-3 rounded-full font-semibold transition-all"
           >
             {t({ th: "ดูของรางวัลทั้งหมด", en: "Browse All Rewards" })}
             <svg

@@ -65,20 +65,20 @@ export default function AnnouncementsPage() {
 
   // Skeleton loader
   const CardSkeleton = () => (
-    <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 animate-pulse">
+    <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4 animate-pulse">
       <div className="flex items-start gap-3">
-        <div className="w-12 h-12 rounded-full bg-[#1A1A1A] flex-shrink-0" />
+        <div className="w-12 h-12 rounded-full bg-[var(--bg-card-inner)] flex-shrink-0" />
         <div className="flex-1 space-y-2">
-          <div className="h-4 bg-[#1A1A1A] rounded w-1/3" />
-          <div className="h-3 bg-[#1A1A1A] rounded w-2/3" />
-          <div className="h-3 bg-[#1A1A1A] rounded w-1/2" />
+          <div className="h-4 bg-[var(--bg-card-inner)] rounded w-1/3" />
+          <div className="h-3 bg-[var(--bg-card-inner)] rounded w-2/3" />
+          <div className="h-3 bg-[var(--bg-card-inner)] rounded w-1/2" />
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white">
+    <div className="min-h-screen bg-[var(--bg-primary)] text-white">
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
@@ -144,7 +144,7 @@ export default function AnnouncementsPage() {
             {announcements.map((item) => (
               <div
                 key={item.id}
-                className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 hover:border-[#333] transition"
+                className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4 hover:border-[var(--border-secondary)] transition"
               >
                 <div className="flex items-start gap-3">
                   {/* Avatar */}

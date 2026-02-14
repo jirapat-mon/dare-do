@@ -331,7 +331,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <AuthGuard>
-        <div className="min-h-screen bg-[#0A0A0A] text-white flex items-center justify-center">
+        <div className="min-h-screen bg-[var(--bg-primary)] text-white flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
             <p className="text-gray-400">{t({ th: "กำลังโหลด...", en: "Loading..." })}</p>
@@ -343,11 +343,11 @@ export default function ProfilePage() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-[#0A0A0A] text-white">
+      <div className="min-h-screen bg-[var(--bg-primary)] text-white">
         <div className="max-w-4xl mx-auto px-4 py-8">
 
           {/* Profile Card with Banner */}
-          <div className="relative bg-[#111111] border border-[#1A1A1A] rounded-2xl mb-6 overflow-hidden">
+          <div className="relative bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl mb-6 overflow-hidden">
 
             {/* Banner */}
             <div
@@ -415,7 +415,7 @@ export default function ProfilePage() {
               className={`absolute top-3 right-3 z-10 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ${
                 editMode
                   ? "bg-orange-500 text-white shadow-lg shadow-orange-500/30"
-                  : "bg-[#1A1A1A]/80 backdrop-blur-sm text-gray-300 hover:text-white hover:bg-[#1A1A1A]"
+                  : "bg-[var(--bg-card-inner)]/80 backdrop-blur-sm text-gray-300 hover:text-white hover:bg-[var(--bg-card-inner)]"
               }`}
               title={editMode
                 ? t({ th: "ปิดแก้ไข", en: "Close edit" })
@@ -443,7 +443,7 @@ export default function ProfilePage() {
                     className={`relative ${editMode ? "cursor-pointer" : "cursor-default"}`}
                     disabled={uploading || !editMode}
                   >
-                    <div className="rounded-full border-4 border-[#111111] bg-[#111111]">
+                    <div className="rounded-full border-4 border-[#111111] bg-[var(--bg-secondary)]">
                       <Avatar
                         avatarUrl={avatarUrl}
                         name={user?.name}
@@ -520,7 +520,7 @@ export default function ProfilePage() {
                         : t({ th: "Rank สูงสุดแล้ว!", en: "Max Rank!" })}
                     </span>
                   </div>
-                  <div className="w-full bg-[#1A1A1A] rounded-full h-2.5 overflow-hidden">
+                  <div className="w-full bg-[var(--bg-card-inner)] rounded-full h-2.5 overflow-hidden">
                     <div
                       className="bg-gradient-to-r from-orange-600 to-orange-400 h-full transition-all duration-500 rounded-full"
                       style={{ width: `${stats.rankProgress}%` }}
@@ -543,7 +543,7 @@ export default function ProfilePage() {
               editMode ? "max-h-[2000px] opacity-100 mb-6" : "max-h-0 opacity-0"
             }`}
           >
-            <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6">
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold">
                   {t({ th: "กรอบโปรไฟล์", en: "Avatar Frames" })}
@@ -579,7 +579,7 @@ export default function ProfilePage() {
                   className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                     frameTab === "free"
                       ? "bg-orange-500 text-white"
-                      : "bg-[#1A1A1A] text-gray-400 hover:text-white hover:bg-[#222]"
+                      : "bg-[var(--bg-card-inner)] text-gray-400 hover:text-white hover:bg-[var(--bg-card-hover)]"
                   }`}
                 >
                   {t({ th: "ฟรี", en: "Free" })} ({framesData?.frames.filter(f => f.category === "free").length ?? 0})
@@ -589,7 +589,7 @@ export default function ProfilePage() {
                   className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                     frameTab === "premium"
                       ? "bg-orange-500 text-white"
-                      : "bg-[#1A1A1A] text-gray-400 hover:text-white hover:bg-[#222]"
+                      : "bg-[var(--bg-card-inner)] text-gray-400 hover:text-white hover:bg-[var(--bg-card-hover)]"
                   }`}
                 >
                   {t({ th: "พรีเมียม", en: "Premium" })} ({framesData?.frames.filter(f => f.category === "premium").length ?? 0})
@@ -618,7 +618,7 @@ export default function ProfilePage() {
                           ? "bg-orange-500/10 border-2 border-orange-500"
                           : isPreviewing
                           ? "bg-blue-500/10 border-2 border-blue-500/50"
-                          : "bg-[#1A1A1A] border border-[#222] hover:border-[#444]"
+                          : "bg-[var(--bg-card-inner)] border border-[var(--border-primary)] hover:border-[var(--border-secondary)]"
                       }`}
                       onMouseEnter={() => setPreviewFrame(frame.key)}
                       onMouseLeave={() => setPreviewFrame(null)}
@@ -675,7 +675,7 @@ export default function ProfilePage() {
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             {/* Submissions */}
-            <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 text-center">
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4 text-center">
               <div className="text-2xl mb-1">
                 <svg className="w-7 h-7 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -688,7 +688,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Contracts Completed */}
-            <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 text-center">
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4 text-center">
               <div className="text-2xl mb-1">
                 <svg className="w-7 h-7 mx-auto text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -703,7 +703,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Streak */}
-            <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 text-center flex flex-col items-center justify-center">
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4 text-center flex flex-col items-center justify-center">
               <StreakFire streak={stats?.streak ?? 0} size="md" />
               <div className="text-xs text-gray-400 mt-1">
                 {t({ th: "Streak", en: "Streak" })}
@@ -711,7 +711,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Lifetime Points */}
-            <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 text-center">
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4 text-center">
               <div className="text-2xl mb-1">
                 <svg className="w-7 h-7 mx-auto text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -727,7 +727,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Badge Collection */}
-          <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">
                 {t({ th: "เหรียญรางวัล", en: "Badges" })}{" "}
@@ -747,7 +747,7 @@ export default function ProfilePage() {
                   className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
                     activeCategory === cat.key
                       ? "bg-orange-500 text-white"
-                      : "bg-[#1A1A1A] text-gray-400 hover:text-white hover:bg-[#222]"
+                      : "bg-[var(--bg-card-inner)] text-gray-400 hover:text-white hover:bg-[var(--bg-card-hover)]"
                   }`}
                 >
                   {cat.label}
@@ -762,8 +762,8 @@ export default function ProfilePage() {
                   key={badge.key}
                   className={`relative rounded-xl p-4 text-center transition-all duration-300 ${
                     badge.earned
-                      ? `bg-[#1A1A1A] border-2 ${CATEGORY_COLORS[badge.category]} shadow-lg ${CATEGORY_GLOWS[badge.category]} hover:scale-105 hover:shadow-xl`
-                      : "bg-[#1A1A1A] border border-[#222] opacity-50"
+                      ? `bg-[var(--bg-card-inner)] border-2 ${CATEGORY_COLORS[badge.category]} shadow-lg ${CATEGORY_GLOWS[badge.category]} hover:scale-105 hover:shadow-xl`
+                      : "bg-[var(--bg-card-inner)] border border-[var(--border-primary)] opacity-50"
                   }`}
                 >
                   {/* Lock overlay for unearned */}

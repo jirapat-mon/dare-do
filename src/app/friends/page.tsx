@@ -309,12 +309,12 @@ export default function FriendsPage() {
 
   // Skeleton loader
   const CardSkeleton = () => (
-    <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 animate-pulse">
+    <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4 animate-pulse">
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-full bg-[#1A1A1A]" />
+        <div className="w-12 h-12 rounded-full bg-[var(--bg-card-inner)]" />
         <div className="flex-1 space-y-2">
-          <div className="h-4 bg-[#1A1A1A] rounded w-2/3" />
-          <div className="h-3 bg-[#1A1A1A] rounded w-1/2" />
+          <div className="h-4 bg-[var(--bg-card-inner)] rounded w-2/3" />
+          <div className="h-3 bg-[var(--bg-card-inner)] rounded w-1/2" />
         </div>
       </div>
     </div>
@@ -322,7 +322,7 @@ export default function FriendsPage() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-[#0A0A0A] text-white">
+      <div className="min-h-screen bg-[var(--bg-primary)] text-white">
         <div className="max-w-2xl mx-auto px-4 py-8">
           {/* Header */}
           <h1 className="text-2xl font-bold mb-6">
@@ -338,7 +338,7 @@ export default function FriendsPage() {
                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition ${
                   activeTab === tab
                     ? "bg-orange-500 text-white"
-                    : "bg-[#1A1A1A] text-gray-400 hover:text-white"
+                    : "bg-[var(--bg-card-inner)] text-gray-400 hover:text-white"
                 }`}
               >
                 {t({ th: tabNamesTh[tab], en: tabNamesEn[tab] })}
@@ -397,7 +397,7 @@ export default function FriendsPage() {
                     {friends.map((friend) => (
                       <div
                         key={friend.id}
-                        className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 hover:border-[#333] transition"
+                        className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4 hover:border-[var(--border-secondary)] transition"
                       >
                         <Link href={`/profile/${friend.id}`} className="flex flex-col items-center text-center">
                           <div className="w-12 h-12 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center font-bold text-lg mb-2">
@@ -424,7 +424,7 @@ export default function FriendsPage() {
                               friend.name || friend.email
                             )
                           }
-                          className="mt-3 text-xs text-gray-500 hover:text-red-400 transition px-3 py-1 rounded-full border border-[#1A1A1A] hover:border-red-500/50"
+                          className="mt-3 text-xs text-gray-500 hover:text-red-400 transition px-3 py-1 rounded-full border border-[var(--border-primary)] hover:border-red-500/50"
                         >
                           {t({ th: "ลบเพื่อน", en: "Unfriend" })}
                         </button>
@@ -461,7 +461,7 @@ export default function FriendsPage() {
                     th: "ค้นหาด้วยชื่อหรืออีเมล...",
                     en: "Search by name or email...",
                   })}
-                  className="w-full bg-[#111111] border border-[#1A1A1A] text-white rounded-xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-orange-500 transition placeholder:text-gray-600"
+                  className="w-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-white rounded-xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-orange-500 transition placeholder:text-gray-600"
                 />
               </div>
 
@@ -498,7 +498,7 @@ export default function FriendsPage() {
                     return (
                       <div
                         key={result.id}
-                        className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 flex items-center gap-3"
+                        className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4 flex items-center gap-3"
                       >
                         <Link href={`/profile/${result.id}`} className="w-12 h-12 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center font-bold text-lg flex-shrink-0">
                           {result.name?.charAt(0)?.toUpperCase() ||
@@ -584,7 +584,7 @@ export default function FriendsPage() {
                   {pendingRequests.map((req) => (
                     <div
                       key={req.friendshipId}
-                      className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4"
+                      className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4"
                     >
                       <Link href={`/profile/${req.user.id}`} className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center font-bold text-lg flex-shrink-0">
@@ -621,7 +621,7 @@ export default function FriendsPage() {
                             handleRespondRequest(req.friendshipId, "reject")
                           }
                           disabled={respondingId === req.friendshipId}
-                          className="flex-1 border border-[#333] text-gray-400 py-2 rounded-full text-sm font-medium hover:text-white hover:border-white transition disabled:opacity-50"
+                          className="flex-1 border border-[var(--border-secondary)] text-gray-400 py-2 rounded-full text-sm font-medium hover:text-white hover:border-white transition disabled:opacity-50"
                         >
                           {t({ th: "ปฏิเสธ", en: "Reject" })}
                         </button>
@@ -663,7 +663,7 @@ export default function FriendsPage() {
                   {activities.map((item) => (
                     <div
                       key={item.id}
-                      className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 flex items-start gap-3"
+                      className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-4 flex items-start gap-3"
                     >
                       <div className="w-10 h-10 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center font-bold text-sm flex-shrink-0 mt-0.5">
                         {item.userName?.charAt(0)?.toUpperCase() || "?"}

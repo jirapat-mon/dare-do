@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
       if (grouped.length === 0) {
         return NextResponse.json({
           period,
-          entries: [],
+          leaderboard: [],
           currentUser: null,
         });
       }
@@ -231,7 +231,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       period,
-      entries,
+      leaderboard: entries,
       currentUser: currentUserInList ?? currentUser,
     });
   } catch (error) {

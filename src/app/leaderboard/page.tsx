@@ -88,7 +88,7 @@ export default function LeaderboardPage() {
         <h1 className="text-3xl font-bold mb-6">{t("leaderboard.title")}</h1>
 
         {/* Period Tabs */}
-        <div className="flex gap-1 mb-8 border-b border-[#222]">
+        <div className="flex gap-1 mb-8 border-b border-[var(--border-primary)]">
           {PERIODS.map((p) => (
             <button
               key={p}
@@ -161,7 +161,7 @@ export default function LeaderboardPage() {
 
             {/* Rest of leaderboard (4+) */}
             {rest.length > 0 && (
-              <div className="rounded-xl border border-[#1A1A1A] overflow-hidden">
+              <div className="rounded-xl border border-[var(--border-primary)] overflow-hidden">
                 {rest.map((entry, idx) => {
                   const pos = idx + 4;
                   const isCurrentUser =
@@ -173,8 +173,8 @@ export default function LeaderboardPage() {
                         isCurrentUser
                           ? "bg-orange-500/5 border-l-2 border-l-orange-500"
                           : idx % 2 === 0
-                          ? "bg-[#0A0A0A]"
-                          : "bg-[#111111]"
+                          ? "bg-[var(--bg-primary)]"
+                          : "bg-[var(--bg-secondary)]"
                       }`}
                     >
                       {/* Position */}
@@ -209,7 +209,7 @@ export default function LeaderboardPage() {
 
                       {/* Badge count */}
                       {entry.badgeCount > 0 && (
-                        <span className="text-xs text-gray-500 bg-[#1A1A1A] rounded-full px-2 py-0.5">
+                        <span className="text-xs text-gray-500 bg-[var(--bg-card-inner)] rounded-full px-2 py-0.5">
                           {entry.badgeCount} 🏅
                         </span>
                       )}
@@ -222,7 +222,7 @@ export default function LeaderboardPage() {
             {/* Your Position Card (sticky bottom) */}
             {currentUser && !currentUserInList && (
               <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-40">
-                <div className="bg-[#111111] border border-orange-500/30 rounded-xl px-4 py-3 flex items-center gap-3 shadow-lg shadow-black/50">
+                <div className="bg-[var(--bg-secondary)] border border-orange-500/30 rounded-xl px-4 py-3 flex items-center gap-3 shadow-lg shadow-black/50">
                   <span className="text-lg font-bold text-orange-400">
                     #{currentUser.position}
                   </span>

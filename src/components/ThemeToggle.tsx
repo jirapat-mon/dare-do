@@ -8,7 +8,7 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-full border border-[#333] hover:border-orange-500 transition-colors"
+      className="p-2 rounded-full border border-[var(--border-secondary)] hover:border-orange-500 transition-colors"
       aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
     >
       {theme === "dark" ? (

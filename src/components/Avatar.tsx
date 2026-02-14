@@ -54,7 +54,7 @@ export default function Avatar({
           boxShadow: "0 0 12px rgba(168,85,247,0.4)",
         }}
       >
-        <div className="w-full h-full rounded-full overflow-hidden bg-[#0A0A0A]">
+        <div className="w-full h-full rounded-full overflow-hidden bg-[var(--bg-primary)]">
           {avatarUrl ? (
             <img
               src={avatarUrl}

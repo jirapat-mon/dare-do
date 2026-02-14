@@ -252,7 +252,7 @@ export default function AdminPage() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-[#0A0A0A] text-white">
+      <div className="min-h-screen bg-[var(--bg-primary)] text-white">
         <div className="max-w-6xl mx-auto px-4 py-8">
           {/* Title */}
           <h1 className="text-3xl font-bold mb-6">{t("admin.title")}</h1>
@@ -260,35 +260,35 @@ export default function AdminPage() {
           {/* Stats Dashboard */}
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-              <div className="bg-[#111111] border border-[#1A1A1A] rounded-xl p-4">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-4">
                 <p className="text-xs text-gray-500 mb-1">{t({ th: "ผู้ใช้ทั้งหมด", en: "Total Users" })}</p>
                 <p className="text-2xl font-bold text-white">{stats.users.total}</p>
               </div>
-              <div className="bg-[#111111] border border-[#1A1A1A] rounded-xl p-4">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-4">
                 <p className="text-xs text-gray-500 mb-1">{t({ th: "ใช้งาน 7 วัน", en: "Active 7d" })}</p>
                 <p className="text-2xl font-bold text-green-400">{stats.users.active7d}</p>
               </div>
-              <div className="bg-[#111111] border border-[#1A1A1A] rounded-xl p-4">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-4">
                 <p className="text-xs text-gray-500 mb-1">{t({ th: "Contract ใช้งาน", en: "Active Contracts" })}</p>
                 <p className="text-2xl font-bold text-orange-400">{stats.contracts.active}</p>
               </div>
-              <div className="bg-[#111111] border border-[#1A1A1A] rounded-xl p-4">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-4">
                 <p className="text-xs text-gray-500 mb-1">{t({ th: "เงินเดิมพันรวม", en: "Total Staked" })}</p>
                 <p className="text-2xl font-bold text-yellow-400">&#3647;{stats.totalStaked.toLocaleString()}</p>
               </div>
-              <div className="bg-[#111111] border border-[#1A1A1A] rounded-xl p-4">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-4">
                 <p className="text-xs text-gray-500 mb-1">Free</p>
                 <p className="text-xl font-bold text-gray-400">{stats.subscriptions.free}</p>
               </div>
-              <div className="bg-[#111111] border border-[#1A1A1A] rounded-xl p-4">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-4">
                 <p className="text-xs text-gray-500 mb-1">Starter</p>
                 <p className="text-xl font-bold text-orange-400">{stats.subscriptions.starter}</p>
               </div>
-              <div className="bg-[#111111] border border-[#1A1A1A] rounded-xl p-4">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-4">
                 <p className="text-xs text-gray-500 mb-1">Pro</p>
                 <p className="text-xl font-bold text-purple-400">{stats.subscriptions.pro}</p>
               </div>
-              <div className="bg-[#111111] border border-[#1A1A1A] rounded-xl p-4">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-4">
                 <p className="text-xs text-gray-500 mb-1">{t({ th: "รอถอนเงิน", en: "Pending Withdrawals" })}</p>
                 <p className="text-xl font-bold text-red-400">{stats.pendingWithdrawals}</p>
               </div>
@@ -296,7 +296,7 @@ export default function AdminPage() {
           )}
 
           {/* Tabs */}
-          <div className="flex border-b border-[#1A1A1A] mb-8 overflow-x-auto">
+          <div className="flex border-b border-[var(--border-primary)] mb-8 overflow-x-auto">
             <button
               onClick={() => setActiveTab("pending")}
               className={`px-6 pb-3 transition-colors whitespace-nowrap ${
@@ -363,7 +363,7 @@ export default function AdminPage() {
             ) : (
               <div className="space-y-4">
                 {withdrawals.map((w) => (
-                  <div key={w.id} className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6">
+                  <div key={w.id} className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-6">
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <p className="text-white font-semibold">{w.wallet.user.name || w.wallet.user.email}</p>
@@ -371,7 +371,7 @@ export default function AdminPage() {
                       </div>
                       <p className="text-2xl font-bold text-orange-400">&#3647;{w.amount.toLocaleString()}</p>
                     </div>
-                    <div className="bg-[#1A1A1A] rounded-xl p-3 mb-4 space-y-1 text-sm">
+                    <div className="bg-[var(--bg-card-inner)] rounded-xl p-3 mb-4 space-y-1 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-500">{t({ th: "ธนาคาร:", en: "Bank:" })}</span>
                         <span className="text-white">{w.bankName}</span>
@@ -439,7 +439,7 @@ export default function AdminPage() {
                 </div>
 
                 {/* Recent Transactions */}
-                <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl overflow-hidden">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl overflow-hidden">
                   <div className="p-6 pb-4">
                     <h2 className="text-xl font-bold">
                       {t({
@@ -448,7 +448,7 @@ export default function AdminPage() {
                       })}
                     </h2>
                   </div>
-                  <div className="divide-y divide-[#1A1A1A]">
+                  <div className="divide-y divide-[var(--border-primary)]">
                     {(revenue?.transactions || []).length === 0 ? (
                       <div className="px-6 py-8 text-center text-gray-400">
                         {t({
@@ -531,7 +531,7 @@ export default function AdminPage() {
               {submissions.map((submission) => (
                 <div
                   key={submission.id}
-                  className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6"
+                  className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-6"
                 >
                   {/* User */}
                   <div className="mb-2">
@@ -555,7 +555,7 @@ export default function AdminPage() {
                   </div>
 
                   {/* Image */}
-                  <div className="bg-[#1A1A1A] w-full h-48 rounded-xl overflow-hidden flex items-center justify-center text-gray-500 mb-3">
+                  <div className="bg-[var(--bg-card-inner)] w-full h-48 rounded-xl overflow-hidden flex items-center justify-center text-gray-500 mb-3">
                     <img
                       src={submission.imageData}
                       alt={t({ th: "หลักฐาน", en: "Evidence" })}
@@ -570,7 +570,7 @@ export default function AdminPage() {
 
                   {/* Note */}
                   {submission.note && (
-                    <div className="mb-3 text-sm text-gray-300 bg-[#1A1A1A] p-3 rounded-lg">
+                    <div className="mb-3 text-sm text-gray-300 bg-[var(--bg-card-inner)] p-3 rounded-lg">
                       <span className="text-gray-400">{t({ th: "หมายเหตุ: ", en: "Note: " })}</span>
                       {submission.note}
                     </div>
@@ -598,7 +598,7 @@ export default function AdminPage() {
                           }))
                         }
                         placeholder={t("admin.notesPlaceholder")}
-                        className="bg-[#1A1A1A] border border-[#333] rounded-xl w-full px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-orange-500 transition-colors mt-3"
+                        className="bg-[var(--bg-card-inner)] border border-[var(--border-secondary)] rounded-xl w-full px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-orange-500 transition-colors mt-3"
                         rows={2}
                         disabled={processingIds.has(submission.id)}
                       />
