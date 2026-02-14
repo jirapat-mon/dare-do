@@ -350,9 +350,9 @@ export default function CreateContractPage() {
                     <span className="text-gray-300">
                       {t({ th: "ทำสำเร็จ → ได้คืน", en: "Complete → get back" })}{" "}
                       <span className="text-green-400 font-bold">
-                        ฿{Math.floor(stakes * 0.95).toLocaleString()}
+                        ฿{Math.floor(stakes * 1.005).toLocaleString()}
                       </span>{" "}
-                      <span className="text-gray-500">(95%)</span>
+                      <span className="text-gray-500">(100% + 0.5% {t({ th: "โบนัส", en: "bonus" })})</span>
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
@@ -407,7 +407,7 @@ export default function CreateContractPage() {
                       {t({ th: "ทำครบ", en: "Complete" })}
                     </p>
                     <p className="text-green-400 font-bold text-sm mt-0.5">
-                      {t({ th: "ได้คืน 95%", en: "Get 95% back" })}
+                      {t({ th: "ได้คืน 100% + โบนัส 0.5%", en: "Get 100% + 0.5% bonus" })}
                     </p>
                   </div>
                   <div className="flex-1 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2 text-center">

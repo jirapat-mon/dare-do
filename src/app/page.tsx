@@ -524,7 +524,7 @@ export default function HomePage() {
                 {t({ th: "เงินจริง เดิมพันจริง", en: "Real Money, Real Stakes" })}
               </h3>
               <p className="text-gray-500 text-sm leading-relaxed">
-                {t({ th: "วางเงินจริงตั้งแต่ 100 บาท ทำสำเร็จได้คืน 95% ล้มเหลวเสียหมด", en: "Stake real money from 100 baht. Succeed and get 95% back. Fail and lose it all." })}
+                {t({ th: "วางเงินจริงตั้งแต่ 100 บาท ทำสำเร็จได้คืน 100% + โบนัส 0.5% ล้มเหลวเสียหมด", en: "Stake real money from 100 baht. Succeed and get 100.5% back. Fail and lose it all." })}
               </p>
             </div>
           </div>

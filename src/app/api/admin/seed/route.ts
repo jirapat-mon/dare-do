@@ -36,7 +36,7 @@ export async function POST() {
           "Streak Rewards",
           "Daily Submissions",
         ]),
-        stripePriceId: null,
+        stripePriceId: "price_1T0YuhIqfCASXWSgQaHEb02N",
       },
       {
         tier: "pro",
@@ -51,7 +51,7 @@ export async function POST() {
           "Priority Support",
           "Badges",
         ]),
-        stripePriceId: null,
+        stripePriceId: "price_1T0YuuIqfCASXWSgJPTbYqaN",
       },
     ];
 

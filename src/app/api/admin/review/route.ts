@@ -157,25 +157,43 @@ export async function POST(request: NextRequest) {
             });
           }
 
-          // Escrow settlement — return 95% of stakes on success
+          // Escrow settlement — return 100% of stakes + 0.5% bonus on success
           if (updatedContract.stakes > 0) {
-            const returnAmount = Math.floor(updatedContract.stakes * 0.95 * 100) / 100;
+            const returnAmount = updatedContract.stakes;
+            const bonusAmount = Math.floor(updatedContract.stakes * 0.005 * 100) / 100; // 0.5% bonus
+            const totalReturn = returnAmount + bonusAmount;
+
             await tx.wallet.update({
               where: { id: wallet.id },
               data: {
-                balance: { increment: returnAmount },
+                balance: { increment: totalReturn },
                 lockedBalance: { decrement: updatedContract.stakes },
               },
             });
+
+            // Transaction record for stake return (100%)
             await tx.transaction.create({
               data: {
                 walletId: wallet.id,
                 contractId: submission.contractId,
                 type: "stake_returned",
                 amount: returnAmount,
-                description: `Contract success: ฿${returnAmount} returned`,
+                description: `Contract success: ฿${returnAmount} returned (100%)`,
               },
             });
+
+            // Transaction record for 0.5% bonus
+            if (bonusAmount > 0) {
+              await tx.transaction.create({
+                data: {
+                  walletId: wallet.id,
+                  contractId: submission.contractId,
+                  type: "stake_bonus",
+                  amount: bonusAmount,
+                  description: `Completion bonus: ฿${bonusAmount} (0.5% of ฿${updatedContract.stakes} stake)`,
+                },
+              });
+            }
           }
         }
 

@@ -9,6 +9,12 @@ const isSimulateMode =
 
 const stripe = isSimulateMode ? null : new Stripe(STRIPE_KEY);
 
+// Fallback Stripe Price IDs in case DB doesn't have them yet
+const STRIPE_PRICE_IDS: Record<string, string> = {
+  starter: "price_1T0YuhIqfCASXWSgQaHEb02N",
+  pro: "price_1T0YuuIqfCASXWSgJPTbYqaN",
+};
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession();
@@ -112,12 +118,21 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Use DB stripePriceId or fallback to hardcoded map
+    const priceId = plan.stripePriceId || STRIPE_PRICE_IDS[tier];
+    if (!priceId) {
+      return NextResponse.json(
+        { error: "Stripe price not configured for this tier" },
+        { status: 500 }
+      );
+    }
+
     const checkoutSession = await stripe!.checkout.sessions.create({
       customer: customerId,
       mode: "subscription",
       line_items: [
         {
-          price: plan.stripePriceId!,
+          price: priceId,
           quantity: 1,
         },
       ],
