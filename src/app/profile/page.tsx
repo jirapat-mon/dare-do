@@ -145,9 +145,9 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate size (max 500KB)
-    if (file.size > 500 * 1024) {
-      alert(t({ th: "รูปภาพใหญ่เกิน 500KB", en: "Image exceeds 500KB limit" }));
+    // Validate size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      alert(t({ th: "รูปภาพใหญ่เกิน 2MB", en: "Image exceeds 2MB limit" }));
       return;
     }
 

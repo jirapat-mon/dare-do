@@ -19,12 +19,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate base64 size (~500KB max)
+    // Validate base64 size (~2MB max)
     const sizeInBytes = Buffer.byteLength(avatarUrl, "utf-8");
-    const maxSize = 500 * 1024; // 500KB
+    const maxSize = 2 * 1024 * 1024; // 2MB
     if (sizeInBytes > maxSize) {
       return NextResponse.json(
-        { error: "Image too large. Max 500KB." },
+        { error: "Image too large. Max 2MB." },
         { status: 400 }
       );
     }
