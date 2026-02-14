@@ -100,7 +100,7 @@ function WalletContent() {
 
   // Withdraw states
   const [showWithdraw, setShowWithdraw] = useState(false);
-  const [withdrawAmount, setWithdrawAmount] = useState(100);
+  const [withdrawAmount, setWithdrawAmount] = useState(50);
   const [withdrawBank, setWithdrawBank] = useState("");
   const [withdrawAccount, setWithdrawAccount] = useState("");
   const [withdrawName, setWithdrawName] = useState("");
@@ -502,7 +502,7 @@ function WalletContent() {
               </button>
               <button
                 onClick={() => setShowWithdraw(true)}
-                disabled={(wallet?.balance || 0) < 100}
+                disabled={(wallet?.balance || 0) < 20}
                 className="flex-1 border border-[#333] text-gray-300 hover:text-white hover:border-white font-semibold rounded-full py-3 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {t({ th: "ถอนเงิน", en: "Withdraw" })}
@@ -555,8 +555,8 @@ function WalletContent() {
                 <p className="text-xs text-gray-500 mb-4">{t({ th: "ใช้เวลาดำเนินการไม่เกิน 24 ชั่วโมง", en: "Processing time up to 24 hours" })}</p>
                 <div className="space-y-3 mb-4">
                   <div>
-                    <label className="text-xs text-gray-400 mb-1 block">{t({ th: "จำนวนเงิน (ขั้นต่ำ ฿100)", en: "Amount (min ฿100)" })}</label>
-                    <input type="number" value={withdrawAmount} onChange={(e) => setWithdrawAmount(Number(e.target.value))} min={100} max={wallet?.balance || 0} className="w-full bg-[#1A1A1A] border border-[#333] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500" />
+                    <label className="text-xs text-gray-400 mb-1 block">{t({ th: "จำนวนเงิน (ขั้นต่ำ ฿20)", en: "Amount (min ฿20)" })}</label>
+                    <input type="number" value={withdrawAmount} onChange={(e) => setWithdrawAmount(Number(e.target.value))} min={20} max={wallet?.balance || 0} className="w-full bg-[#1A1A1A] border border-[#333] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500" />
                   </div>
                   <div>
                     <label className="text-xs text-gray-400 mb-1 block">{t({ th: "ธนาคาร", en: "Bank" })}</label>
@@ -587,7 +587,7 @@ function WalletContent() {
                   <button onClick={() => { setShowWithdraw(false); setWithdrawMsg(null); }} className="flex-1 border border-[#333] text-gray-400 rounded-full py-3 font-semibold transition hover:text-white hover:border-white">
                     {t({ th: "ยกเลิก", en: "Cancel" })}
                   </button>
-                  <button onClick={handleWithdraw} disabled={withdrawLoading || withdrawAmount < 100 || !withdrawBank || !withdrawAccount || !withdrawName || withdrawAmount > (wallet?.balance || 0)} className="flex-1 bg-orange-500 hover:bg-orange-400 text-white rounded-full py-3 font-semibold transition disabled:opacity-50">
+                  <button onClick={handleWithdraw} disabled={withdrawLoading || withdrawAmount < 20 || !withdrawBank || !withdrawAccount || !withdrawName || withdrawAmount > (wallet?.balance || 0)} className="flex-1 bg-orange-500 hover:bg-orange-400 text-white rounded-full py-3 font-semibold transition disabled:opacity-50">
                     {withdrawLoading ? t({ th: "กำลังดำเนินการ...", en: "Processing..." }) : t({ th: `ถอน ฿${withdrawAmount.toLocaleString()}`, en: `Withdraw ฿${withdrawAmount.toLocaleString()}` })}
                   </button>
                 </div>

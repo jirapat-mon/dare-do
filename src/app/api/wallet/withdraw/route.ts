@@ -19,9 +19,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (typeof amount !== "number" || amount < 100) {
+    if (typeof amount !== "number" || amount < 20) {
       return NextResponse.json(
-        { error: "Minimum withdrawal is ฿100" },
+        { error: "Minimum withdrawal is ฿20" },
         { status: 400 }
       );
     }
