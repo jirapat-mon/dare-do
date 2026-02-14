@@ -1,60 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma, type PrismaTransactionClient } from "@/lib/db";
 import Stripe from "stripe";
+import { MONTHLY_BONUS_POINTS } from "@/lib/gamification";
 
 const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || "";
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || "";
 
 const stripe = new Stripe(STRIPE_KEY);
-
-// --- Wallet top-up handler ---
-async function creditWallet(userId: string, amount: number, stripeSessionId: string) {
-  // Idempotency check: look for existing transaction with this Stripe session ID
-  const existing = await prisma.transaction.findFirst({
-    where: {
-      description: { contains: stripeSessionId },
-      type: "topup",
-    },
-  });
-
-  if (existing) {
-    console.log(`[Stripe Webhook] Already processed session ${stripeSessionId}, skipping`);
-    return { alreadyProcessed: true };
-  }
-
-  const result = await prisma.$transaction(async (tx: PrismaTransactionClient) => {
-    // Find or create wallet
-    let wallet = await tx.wallet.findUnique({
-      where: { userId },
-    });
-    if (!wallet) {
-      wallet = await tx.wallet.create({
-        data: { userId, points: 0, streak: 0 },
-      });
-    }
-
-    // Increment balance
-    wallet = await tx.wallet.update({
-      where: { id: wallet.id },
-      data: { balance: { increment: amount } },
-    });
-
-    // Create transaction record with Stripe session ID for idempotency
-    await tx.transaction.create({
-      data: {
-        walletId: wallet.id,
-        type: "topup",
-        amount,
-        description: `Stripe top-up ฿${amount} [${stripeSessionId}]`,
-      },
-    });
-
-    return wallet;
-  });
-
-  console.log(`[Stripe Webhook] Credited ฿${amount} to user ${userId}, wallet ${result.id}`);
-  return { alreadyProcessed: false, wallet: result };
-}
 
 // --- Subscription handlers ---
 
@@ -169,6 +121,7 @@ async function handlePaymentSucceeded(invoice: InvoiceData) {
   }
 
   await prisma.$transaction(async (tx: PrismaTransactionClient) => {
+    // Record platform revenue
     await tx.platformWallet.update({
       where: { id: platformWallet.id },
       data: {
@@ -187,9 +140,43 @@ async function handlePaymentSucceeded(invoice: InvoiceData) {
         stripePaymentId: invoice.payment_intent,
       },
     });
+
+    // Grant monthly bonus points based on tier
+    const tier = user.subscriptionTier || "free";
+    const bonusPoints = MONTHLY_BONUS_POINTS[tier] || 0;
+
+    if (bonusPoints > 0) {
+      // Find or create wallet
+      let wallet = await tx.wallet.findUnique({
+        where: { userId: user.id },
+      });
+      if (!wallet) {
+        wallet = await tx.wallet.create({
+          data: { userId: user.id, points: 0, streak: 0 },
+        });
+      }
+
+      // Add bonus points
+      await tx.wallet.update({
+        where: { id: wallet.id },
+        data: { points: { increment: bonusPoints } },
+      });
+
+      // Record transaction
+      await tx.transaction.create({
+        data: {
+          walletId: wallet.id,
+          type: "monthly_bonus",
+          amount: bonusPoints,
+          description: `Monthly bonus: +${bonusPoints} points (${tier} tier)`,
+        },
+      });
+
+      console.log(`[Stripe Webhook] Granted ${bonusPoints} monthly bonus points to user=${user.id} (${tier} tier)`);
+    }
   });
 
-  console.log(`[Stripe Webhook] Payment succeeded: user=${user.id} amount=฿${amount}`);
+  console.log(`[Stripe Webhook] Payment succeeded: user=${user.id} amount=${amount}`);
 }
 
 async function handleSubscriptionCheckout(session: Stripe.Checkout.Session) {
@@ -251,24 +238,8 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        const metadata = session.metadata || {};
 
-        if (metadata.type === "wallet_topup") {
-          // Wallet top-up flow
-          const userId = metadata.userId;
-          const amount = parseFloat(metadata.amount);
-
-          if (!userId || isNaN(amount) || amount <= 0) {
-            console.error("[Stripe Webhook] Invalid metadata:", metadata);
-            return NextResponse.json({ error: "Invalid metadata" }, { status: 400 });
-          }
-
-          if (session.payment_status === "paid") {
-            await creditWallet(userId, amount, session.id);
-          } else {
-            console.log(`[Stripe Webhook] Session ${session.id} payment_status: ${session.payment_status}, skipping credit`);
-          }
-        } else if (session.mode === "subscription") {
+        if (session.mode === "subscription") {
           // Subscription checkout flow
           await handleSubscriptionCheckout(session);
         }

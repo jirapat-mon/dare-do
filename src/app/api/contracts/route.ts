@@ -1,12 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/jwt";
 import { prisma, type PrismaTransactionClient } from "@/lib/db";
-
-const TIER_LIMITS: Record<string, number> = {
-  free: 1,
-  basic: 5,
-  pro: 999,
-};
+import { TIER_LIMITS } from "@/lib/gamification";
 
 export async function GET() {
   try {
@@ -43,8 +38,8 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { goal, duration, deadline, stakes: rawStakes } = body;
-    const stakes = typeof rawStakes === "number" && rawStakes > 0 ? rawStakes : 0;
+    const { goal, duration, deadline, pointsStaked: rawPointsStaked } = body;
+    const pointsStaked = typeof rawPointsStaked === "number" && rawPointsStaked > 0 ? Math.floor(rawPointsStaked) : 0;
 
     if (!goal || !duration || !deadline) {
       return NextResponse.json(
@@ -62,7 +57,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const maxContracts = TIER_LIMITS[user.subscriptionTier] ?? 1;
+    const tierLimit = TIER_LIMITS[user.subscriptionTier];
+    const maxContracts = tierLimit === null ? Infinity : (tierLimit ?? 1);
 
     const activeCount = await prisma.contract.count({
       where: { userId: session.userId, status: "active" },
@@ -72,7 +68,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: "Contract limit reached",
-          limit: maxContracts,
+          limit: tierLimit === null ? "unlimited" : maxContracts,
           current: activeCount,
           tier: user.subscriptionTier,
         },
@@ -80,8 +76,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // If stakes > 0, check wallet balance and lock funds atomically
-    if (stakes > 0) {
+    // If pointsStaked > 0, check wallet points and lock atomically
+    if (pointsStaked > 0) {
       const result = await prisma.$transaction(async (tx: PrismaTransactionClient) => {
         let wallet = await tx.wallet.findUnique({
           where: { userId: session.userId },
@@ -92,29 +88,29 @@ export async function POST(request: Request) {
           });
         }
 
-        if (wallet.balance < stakes) {
-          throw new Error("INSUFFICIENT_BALANCE");
+        if (wallet.points < pointsStaked) {
+          throw new Error("INSUFFICIENT_POINTS");
         }
 
-        // Create contract with stakes
+        // Create contract with pointsStaked
         const contract = await tx.contract.create({
           data: {
             userId: session.userId,
             goal,
             duration,
             deadline,
-            stakes,
+            pointsStaked,
             status: "active",
             daysCompleted: 0,
           },
         });
 
-        // Deduct balance, increase lockedBalance
+        // Deduct points, increase lockedPoints
         await tx.wallet.update({
           where: { id: wallet.id },
           data: {
-            balance: { decrement: stakes },
-            lockedBalance: { increment: stakes },
+            points: { decrement: pointsStaked },
+            lockedPoints: { increment: pointsStaked },
           },
         });
 
@@ -123,9 +119,9 @@ export async function POST(request: Request) {
           data: {
             walletId: wallet.id,
             contractId: contract.id,
-            type: "stake_locked",
-            amount: -stakes,
-            description: `Staked ฿${stakes} on contract`,
+            type: "points_staked",
+            amount: -pointsStaked,
+            description: `Staked ${pointsStaked} points on contract`,
           },
         });
 
@@ -149,9 +145,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, contract });
   } catch (error) {
-    if (error instanceof Error && error.message === "INSUFFICIENT_BALANCE") {
+    if (error instanceof Error && error.message === "INSUFFICIENT_POINTS") {
       return NextResponse.json(
-        { error: "Insufficient balance" },
+        { error: "Insufficient points" },
         { status: 400 }
       );
     }

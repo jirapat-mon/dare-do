@@ -5,9 +5,13 @@ import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
 import AuthGuard from "@/components/AuthGuard";
 import Link from "next/link";
+import {
+  POINTS_STAKE_PRESETS,
+  STAKE_BONUS_PERCENT,
+  calculateStakeReturn,
+} from "@/lib/gamification";
 
 const DURATIONS = [7, 14, 30, 60, 90];
-const STAKE_PRESETS = [0, 50, 100, 200, 500];
 const HOURS = Array.from({ length: 18 }, (_, i) => {
   const h = i + 6;
   return `${h.toString().padStart(2, "0")}:00`;
@@ -22,6 +26,7 @@ interface SubscriptionStatus {
 const TIER_LIMITS: Record<string, number | null> = {
   free: 1,
   basic: 5,
+  starter: 5,
   pro: null,
 };
 
@@ -38,22 +43,22 @@ export default function CreateContractPage() {
   );
   const [activeContracts, setActiveContracts] = useState(0);
   const [checkingLimit, setCheckingLimit] = useState(true);
-  const [stakes, setStakes] = useState(0);
-  const [customStake, setCustomStake] = useState("");
-  const [walletBalance, setWalletBalance] = useState(0);
+  const [pointsStaked, setPointsStaked] = useState(0);
+  const [customPointsStake, setCustomPointsStake] = useState("");
+  const [availablePoints, setAvailablePoints] = useState(0);
   const [walletLoading, setWalletLoading] = useState(true);
 
   useEffect(() => {
     checkContractLimit();
-    fetchWalletBalance();
+    fetchAvailablePoints();
   }, []);
 
-  const fetchWalletBalance = async () => {
+  const fetchAvailablePoints = async () => {
     try {
       const res = await fetch("/api/wallet");
       if (res.ok) {
         const data = await res.json();
-        setWalletBalance(data.wallet.balance || 0);
+        setAvailablePoints(data.wallet.points || 0);
       }
     } catch (err) {
       console.error("Error fetching wallet:", err);
@@ -91,6 +96,8 @@ export default function CreateContractPage() {
   const tier = subscription?.tier || "free";
   const maxContracts = TIER_LIMITS[tier] ?? 1;
   const isAtLimit = maxContracts !== null && activeContracts >= maxContracts;
+  const bonusPercent = STAKE_BONUS_PERCENT[tier] || 0;
+  const stakeReturn = calculateStakeReturn(tier, pointsStaked);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,11 +118,11 @@ export default function CreateContractPage() {
       return;
     }
 
-    if (stakes > walletBalance) {
+    if (pointsStaked > availablePoints) {
       setError(
         t({
-          th: "ยอดเงินไม่เพียงพอ กรุณาเติมเงินก่อน",
-          en: "Insufficient balance. Please top up first.",
+          th: "แต้มไม่เพียงพอ",
+          en: "Insufficient points.",
         })
       );
       return;
@@ -130,7 +137,7 @@ export default function CreateContractPage() {
           goal: goal.trim(),
           duration,
           deadline,
-          stakes,
+          pointsStaked,
         }),
       });
 
@@ -144,11 +151,11 @@ export default function CreateContractPage() {
               en: "You've reached your plan's contract limit. Please upgrade.",
             })
           );
-        } else if (data.error === "Insufficient balance") {
+        } else if (data.error === "Insufficient balance" || data.error === "Insufficient points") {
           setError(
             t({
-              th: "ยอดเงินไม่เพียงพอ กรุณาเติมเงินก่อน",
-              en: "Insufficient balance. Please top up first.",
+              th: "แต้มไม่เพียงพอ",
+              en: "Insufficient points.",
             })
           );
         } else {
@@ -213,14 +220,14 @@ export default function CreateContractPage() {
           </div>
         )}
 
-        {/* Wallet Balance Display */}
+        {/* Available Points Display */}
         {!walletLoading && (
           <div className="rounded-xl px-4 py-3 mb-6 bg-[var(--bg-secondary)] border border-[var(--border-primary)] flex items-center justify-between">
             <span className="text-sm text-gray-400">
-              {t({ th: "ยอดถอนได้", en: "Available" })}
+              {t({ th: "แต้มที่ใช้ได้", en: "Available Points" })}
             </span>
             <span className="text-white font-bold text-lg">
-              ฿{walletBalance.toLocaleString()}
+              {availablePoints.toLocaleString()} pts
             </span>
           </div>
         )}
@@ -292,113 +299,134 @@ export default function CreateContractPage() {
               </select>
             </div>
 
-            {/* Stake Amount */}
+            {/* Points Stake Amount */}
             <div>
               <label className="block text-sm text-gray-400 mb-3">
-                {t({ th: "วางเดิมพัน (Stake)", en: "Stake Amount" })}
+                {t({ th: "วางแต้มเดิมพัน (Points Stake)", en: "Points Stake" })}
               </label>
 
               {/* Preset buttons */}
               <div className="flex flex-wrap gap-2 mb-4">
-                {STAKE_PRESETS.map((amount) => (
+                {POINTS_STAKE_PRESETS.map((amount) => (
                   <button
                     key={amount}
                     type="button"
                     onClick={() => {
-                      setStakes(amount);
-                      setCustomStake("");
+                      setPointsStaked(amount);
+                      setCustomPointsStake("");
                     }}
                     disabled={loading || isAtLimit}
                     className={`px-4 py-2 rounded-full border text-sm font-medium transition ${
-                      stakes === amount && customStake === ""
+                      pointsStaked === amount && customPointsStake === ""
                         ? "bg-orange-500 border-orange-500 text-white"
                         : "bg-[var(--bg-card-inner)] border-[var(--border-secondary)] text-gray-400 hover:border-orange-500"
                     } ${loading || isAtLimit ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
-                    {amount === 0 ? t({ th: "ฟรี", en: "Free" }) : `฿${amount}`}
+                    {amount === 0 ? t({ th: "ฟรี", en: "Free" }) : `${amount} pts`}
                   </button>
                 ))}
               </div>
 
               {/* Custom amount input */}
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
-                  ฿
-                </span>
                 <input
                   type="number"
                   min={0}
-                  max={walletBalance}
-                  value={customStake}
+                  max={availablePoints}
+                  value={customPointsStake}
                   onChange={(e) => {
                     const val = e.target.value;
-                    setCustomStake(val);
+                    setCustomPointsStake(val);
                     const num = parseInt(val, 10);
-                    setStakes(isNaN(num) || num < 0 ? 0 : num);
+                    setPointsStaked(isNaN(num) || num < 0 ? 0 : num);
                   }}
-                  placeholder={t({ th: "จำนวนที่ต้องการ", en: "Custom amount" })}
-                  className="w-full bg-[var(--bg-card-inner)] border border-[var(--border-secondary)] text-white rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:border-orange-500 transition"
+                  placeholder={t({ th: "จำนวนแต้มที่ต้องการ", en: "Custom points amount" })}
+                  className="w-full bg-[var(--bg-card-inner)] border border-[var(--border-secondary)] text-white rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500 transition"
                   disabled={loading || isAtLimit}
                 />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
+                  pts
+                </span>
               </div>
 
               {/* Stake result info */}
-              {stakes > 0 && (
+              {pointsStaked > 0 && (
                 <div className="mt-3 space-y-2">
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-green-400">&#10003;</span>
                     <span className="text-gray-300">
-                      {t({ th: "ทำสำเร็จ → ได้คืน", en: "Complete → get back" })}{" "}
-                      <span className="text-green-400 font-bold">
-                        ฿{Math.floor(stakes * 1.005).toLocaleString()}
-                      </span>{" "}
-                      <span className="text-gray-500">(100% + 0.5% {t({ th: "โบนัส", en: "bonus" })})</span>
+                      {tier === "free" && (
+                        <>
+                          {t({ th: "ทำสำเร็จ → ได้แต้มคืน", en: "Success: get 100% points back" })}{" "}
+                          <span className="text-green-400 font-bold">
+                            {stakeReturn.returnAmount.toLocaleString()} pts
+                          </span>
+                        </>
+                      )}
+                      {tier === "starter" && (
+                        <>
+                          {t({ th: "ทำสำเร็จ → ได้คืน 110%", en: "Success: get 110% back" })}{" "}
+                          <span className="text-green-400 font-bold">
+                            {stakeReturn.returnAmount.toLocaleString()} pts
+                          </span>{" "}
+                          <span className="text-yellow-400">(+{bonusPercent}% {t({ th: "โบนัส!", en: "bonus!" })})</span>
+                        </>
+                      )}
+                      {tier === "pro" && (
+                        <>
+                          {t({ th: "ทำสำเร็จ → ได้คืน 125%", en: "Success: get 125% back" })}{" "}
+                          <span className="text-green-400 font-bold">
+                            {stakeReturn.returnAmount.toLocaleString()} pts
+                          </span>{" "}
+                          <span className="text-yellow-400">(+{bonusPercent}% {t({ th: "โบนัส!", en: "bonus!" })})</span>
+                        </>
+                      )}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-red-400">&#10007;</span>
                     <span className="text-gray-300">
-                      {t({ th: "ล้มเหลว → เสียเงิน", en: "Fail → lose" })}{" "}
+                      {t({ th: "ล้มเหลว → เสียแต้ม", en: "Fail → lose" })}{" "}
                       <span className="text-red-400 font-bold">
-                        ฿{stakes.toLocaleString()}
+                        {pointsStaked.toLocaleString()} pts
                       </span>
                     </span>
                   </div>
                 </div>
               )}
 
-              {/* Insufficient balance warning */}
-              {stakes > walletBalance && (
+              {/* Insufficient points warning */}
+              {pointsStaked > availablePoints && (
                 <div className="mt-3 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 flex items-center justify-between">
                   <span className="text-red-400 text-sm">
                     {t({
-                      th: "ยอดเงินไม่พอ กรุณาเติมเงิน",
-                      en: "Insufficient balance. Please top up.",
+                      th: "แต้มไม่พอ",
+                      en: "Insufficient points.",
                     })}
                   </span>
                   <Link
                     href="/wallet"
                     className="text-orange-500 hover:text-orange-400 text-sm font-semibold transition"
                   >
-                    {t({ th: "เติมเงิน", en: "Top Up" })}
+                    {t({ th: "ดูแต้ม", en: "View Points" })}
                   </Link>
                 </div>
               )}
             </div>
 
             {/* Escrow Info Box */}
-            {stakes > 0 && (
+            {pointsStaked > 0 && (
               <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-4 space-y-3">
                 <div className="flex items-center gap-2">
                   <span className="text-orange-500 text-lg">&#128274;</span>
                   <span className="text-white font-semibold text-sm">
-                    {t({ th: "ระบบ Escrow", en: "Escrow System" })}
+                    {t({ th: "ระบบล็อคแต้ม", en: "Points Lock" })}
                   </span>
                 </div>
                 <p className="text-gray-400 text-sm leading-relaxed">
                   {t({
-                    th: "เงินจะถูก lock ไว้จนกว่าสัญญาจะจบ",
-                    en: "Your stake will be locked until the contract ends",
+                    th: "แต้มจะถูก lock ไว้จนกว่าสัญญาจะจบ",
+                    en: "Your points will be locked until the contract ends",
                   })}
                 </p>
                 <div className="flex gap-3">
@@ -407,7 +435,9 @@ export default function CreateContractPage() {
                       {t({ th: "ทำครบ", en: "Complete" })}
                     </p>
                     <p className="text-green-400 font-bold text-sm mt-0.5">
-                      {t({ th: "ได้คืน 100% + โบนัส 0.5%", en: "Get 100% + 0.5% bonus" })}
+                      {bonusPercent > 0
+                        ? t({ th: `ได้คืน 100% + โบนัส ${bonusPercent}%`, en: `Get 100% + ${bonusPercent}% bonus` })
+                        : t({ th: "ได้แต้มคืน 100%", en: "Get 100% points back" })}
                     </p>
                   </div>
                   <div className="flex-1 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2 text-center">
@@ -415,7 +445,7 @@ export default function CreateContractPage() {
                       {t({ th: "ล้มเหลว", en: "Failed" })}
                     </p>
                     <p className="text-red-400 font-bold text-sm mt-0.5">
-                      {t({ th: "เสียเดิมพัน", en: "Lose stake" })}
+                      {t({ th: "เสียแต้มทั้งหมด", en: "Lose all staked points" })}
                     </p>
                   </div>
                 </div>
@@ -425,7 +455,7 @@ export default function CreateContractPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading || !goal.trim() || isAtLimit || stakes > walletBalance}
+              disabled={loading || !goal.trim() || isAtLimit || pointsStaked > availablePoints}
               className="w-full text-center bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold py-4 rounded-full transition-all text-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading

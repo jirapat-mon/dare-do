@@ -6,15 +6,15 @@ export type SubscriptionTier = "free" | "starter" | "pro";
 // --- Points per approved submission ---
 export const POINTS_PER_TIER: Record<SubscriptionTier, number> = {
   free: 5,
-  starter: 10,
-  pro: 35,
+  starter: 15,
+  pro: 50,
 };
 
 // --- Streak multiplier (kicks in at STREAK_THRESHOLD days) ---
 export const STREAK_MULTIPLIER: Record<SubscriptionTier, number> = {
   free: 1,
-  starter: 1.5,
-  pro: 2,
+  starter: 2,
+  pro: 3,
 };
 
 export const STREAK_THRESHOLD = 7; // days before multiplier activates
@@ -22,16 +22,16 @@ export const STREAK_THRESHOLD = 7; // days before multiplier activates
 // --- Completion bonus (when contract finishes successfully) ---
 export const COMPLETION_BONUS: Record<SubscriptionTier, number> = {
   free: 0,
-  starter: 100,
-  pro: 200,
+  starter: 200,
+  pro: 500,
 };
 
 // --- Streak Insurance ---
 export const INSURANCE_COST = 200; // points to use insurance
 export const INSURANCE_LIMIT: Record<SubscriptionTier, number> = {
   free: 0,
-  starter: 1,
-  pro: 2,
+  starter: 2,
+  pro: 5,
 };
 
 // --- Rank System (based on lifetime points) ---
@@ -197,6 +197,45 @@ export const BADGES: BadgeDefinition[] = [
 
 export function getBadgeDefinition(key: string): BadgeDefinition | undefined {
   return BADGES.find((b) => b.key === key);
+}
+
+// --- Contract Limits per Tier ---
+export const TIER_LIMITS: Record<string, number | null> = {
+  free: 1,
+  starter: 5,
+  pro: null, // unlimited
+};
+
+export const MAX_CONTRACTS = TIER_LIMITS; // alias
+
+// --- Monthly Bonus Points (granted on subscription renewal) ---
+export const MONTHLY_BONUS_POINTS: Record<string, number> = {
+  free: 0,
+  starter: 200,
+  pro: 1000,
+};
+
+// --- Stake Bonus Percent (extra % returned on contract success) ---
+export const STAKE_BONUS_PERCENT: Record<string, number> = {
+  free: 0,
+  starter: 10,
+  pro: 25,
+};
+
+// --- Points Stake Presets (UI preset amounts for staking) ---
+export const POINTS_STAKE_PRESETS = [0, 50, 100, 200, 500];
+
+// --- Stake Return Calculator ---
+export function calculateStakeReturn(
+  tier: string,
+  stakedPoints: number
+): { returnAmount: number; bonusAmount: number } {
+  const bonusPercent = STAKE_BONUS_PERCENT[tier] || 0;
+  const bonusAmount = Math.round(stakedPoints * bonusPercent / 100);
+  return {
+    returnAmount: stakedPoints + bonusAmount,
+    bonusAmount,
+  };
 }
 
 // --- Points Calculation Helper ---

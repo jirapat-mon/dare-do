@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth";
 import AuthGuard from "@/components/AuthGuard";
 
 type SubmissionStatus = "pending" | "approved" | "rejected";
-type AdminTab = SubmissionStatus | "revenue" | "withdrawals";
+type AdminTab = SubmissionStatus | "revenue";
 
 interface Submission {
   id: string;
@@ -41,28 +41,12 @@ interface RevenueData {
   transactions: RevenueTransaction[];
 }
 
-interface WithdrawalRequest {
-  id: string;
-  amount: number;
-  bankName: string;
-  bankAccount: string;
-  accountName: string;
-  status: string;
-  note: string | null;
-  createdAt: string;
-  processedAt: string | null;
-  wallet: {
-    user: { id: string; name: string | null; email: string };
-  };
-}
-
 interface AdminStats {
   users: { total: number; active7d: number; withActiveContracts: number };
   subscriptions: { free: number; starter: number; pro: number };
   contracts: { total: number; active: number; success: number; failed: number };
-  pendingWithdrawals: number;
   pendingSubmissions: number;
-  totalStaked: number;
+  totalPointsStaked: number;
 }
 
 export default function AdminPage() {
@@ -76,9 +60,6 @@ export default function AdminPage() {
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   const [revenue, setRevenue] = useState<RevenueData | null>(null);
   const [revenueLoading, setRevenueLoading] = useState(false);
-  const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
-  const [withdrawalsLoading, setWithdrawalsLoading] = useState(false);
-  const [processingWithdrawals, setProcessingWithdrawals] = useState<Set<string>>(new Set());
   const [stats, setStats] = useState<AdminStats | null>(null);
 
   useEffect(() => {
@@ -88,10 +69,8 @@ export default function AdminPage() {
   useEffect(() => {
     if (activeTab === "revenue") {
       fetchRevenue();
-    } else if (activeTab === "withdrawals") {
-      fetchWithdrawals();
     } else {
-      fetchSubmissions(activeTab);
+      fetchSubmissions(activeTab as SubmissionStatus);
     }
   }, [activeTab]);
 
@@ -121,44 +100,6 @@ export default function AdminPage() {
       }
     } catch (err) {
       console.error("Error fetching stats:", err);
-    }
-  };
-
-  const fetchWithdrawals = async () => {
-    setWithdrawalsLoading(true);
-    try {
-      const res = await fetch("/api/admin/withdrawals?status=pending");
-      if (res.ok) {
-        const data = await res.json();
-        setWithdrawals(data.withdrawals);
-      }
-    } catch (err) {
-      console.error("Error fetching withdrawals:", err);
-    } finally {
-      setWithdrawalsLoading(false);
-    }
-  };
-
-  const handleWithdrawalAction = async (withdrawalId: string, action: "approve" | "reject") => {
-    setProcessingWithdrawals((prev) => new Set(prev).add(withdrawalId));
-    try {
-      const res = await fetch("/api/admin/withdrawals", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ withdrawalId, action }),
-      });
-      if (res.ok) {
-        fetchWithdrawals();
-        fetchStats();
-      }
-    } catch (err) {
-      console.error("Error processing withdrawal:", err);
-    } finally {
-      setProcessingWithdrawals((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(withdrawalId);
-        return newSet;
-      });
     }
   };
 
@@ -273,8 +214,8 @@ export default function AdminPage() {
                 <p className="text-2xl font-bold text-orange-400">{stats.contracts.active}</p>
               </div>
               <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-4">
-                <p className="text-xs text-gray-500 mb-1">{t({ th: "เงินเดิมพันรวม", en: "Total Staked" })}</p>
-                <p className="text-2xl font-bold text-yellow-400">&#3647;{stats.totalStaked.toLocaleString()}</p>
+                <p className="text-xs text-gray-500 mb-1">{t({ th: "แต้มเดิมพันรวม", en: "Points Staked" })}</p>
+                <p className="text-2xl font-bold text-yellow-400">{stats.totalPointsStaked.toLocaleString()} pts</p>
               </div>
               <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-4">
                 <p className="text-xs text-gray-500 mb-1">Free</p>
@@ -289,8 +230,8 @@ export default function AdminPage() {
                 <p className="text-xl font-bold text-purple-400">{stats.subscriptions.pro}</p>
               </div>
               <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-4">
-                <p className="text-xs text-gray-500 mb-1">{t({ th: "รอถอนเงิน", en: "Pending Withdrawals" })}</p>
-                <p className="text-xl font-bold text-red-400">{stats.pendingWithdrawals}</p>
+                <p className="text-xs text-gray-500 mb-1">{t({ th: "รอตรวจสอบ", en: "Pending Reviews" })}</p>
+                <p className="text-xl font-bold text-red-400">{stats.pendingSubmissions}</p>
               </div>
             </div>
           )}
@@ -328,19 +269,6 @@ export default function AdminPage() {
               {t("admin.rejected")} ({getTabCount("rejected")})
             </button>
             <button
-              onClick={() => setActiveTab("withdrawals")}
-              className={`px-6 pb-3 transition-colors whitespace-nowrap ${
-                activeTab === "withdrawals"
-                  ? "text-orange-500 border-b-2 border-orange-500"
-                  : "text-gray-400"
-              }`}
-            >
-              {t({ th: "ถอนเงิน", en: "Withdrawals" })}
-              {stats && stats.pendingWithdrawals > 0 && (
-                <span className="ml-1.5 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">{stats.pendingWithdrawals}</span>
-              )}
-            </button>
-            <button
               onClick={() => setActiveTab("revenue")}
               className={`px-6 pb-3 transition-colors whitespace-nowrap ${
                 activeTab === "revenue"
@@ -352,65 +280,8 @@ export default function AdminPage() {
             </button>
           </div>
 
-          {/* Withdrawals Tab */}
-          {activeTab === "withdrawals" ? (
-            withdrawalsLoading ? (
-              <div className="text-gray-500 text-center py-12">{t({ th: "กำลังโหลด...", en: "Loading..." })}</div>
-            ) : withdrawals.length === 0 ? (
-              <div className="text-gray-500 text-center py-12">
-                {t({ th: "ไม่มีคำขอถอนเงินที่รอดำเนินการ", en: "No pending withdrawal requests" })}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {withdrawals.map((w) => (
-                  <div key={w.id} className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-6">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <p className="text-white font-semibold">{w.wallet.user.name || w.wallet.user.email}</p>
-                        <p className="text-sm text-gray-500">{w.wallet.user.email}</p>
-                      </div>
-                      <p className="text-2xl font-bold text-orange-400">&#3647;{w.amount.toLocaleString()}</p>
-                    </div>
-                    <div className="bg-[var(--bg-card-inner)] rounded-xl p-3 mb-4 space-y-1 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">{t({ th: "ธนาคาร:", en: "Bank:" })}</span>
-                        <span className="text-white">{w.bankName}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">{t({ th: "เลขบัญชี:", en: "Account:" })}</span>
-                        <span className="text-white font-mono">{w.bankAccount}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">{t({ th: "ชื่อบัญชี:", en: "Name:" })}</span>
-                        <span className="text-white">{w.accountName}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">{t({ th: "วันที่ขอ:", en: "Requested:" })}</span>
-                        <span className="text-white">{formatDate(w.createdAt)}</span>
-                      </div>
-                    </div>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => handleWithdrawalAction(w.id, "approve")}
-                        disabled={processingWithdrawals.has(w.id)}
-                        className="flex-1 bg-green-600 hover:bg-green-500 text-white px-6 py-2.5 rounded-full font-semibold transition disabled:opacity-50"
-                      >
-                        {processingWithdrawals.has(w.id) ? "..." : t({ th: "อนุมัติ (โอนแล้ว)", en: "Approve (Transferred)" })}
-                      </button>
-                      <button
-                        onClick={() => handleWithdrawalAction(w.id, "reject")}
-                        disabled={processingWithdrawals.has(w.id)}
-                        className="flex-1 bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-full font-semibold transition disabled:opacity-50"
-                      >
-                        {processingWithdrawals.has(w.id) ? "..." : t({ th: "ปฏิเสธ (คืนเงิน)", en: "Reject (Refund)" })}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )
-          ) : /* Revenue Tab */
-          activeTab === "revenue" ? (
+          {/* Revenue Tab */}
+          {activeTab === "revenue" ? (
             revenueLoading ? (
               <div className="text-gray-500 text-center py-12">{t({ th: "กำลังโหลด...", en: "Loading..." })}</div>
             ) : (

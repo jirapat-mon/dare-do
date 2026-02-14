@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/jwt";
 import { prisma, type PrismaTransactionClient } from "@/lib/db";
 
-// Cancel contract: refund 50% of stake minus 5% platform fee = 45% of original stake
+// Cancel contract: refund 50% of staked points (no platform fee)
 export async function POST(request: Request) {
   try {
     const session = await getSession();
@@ -49,24 +49,22 @@ export async function POST(request: Request) {
         data: { status: "failed" },
       });
 
-      let refundAmount = 0;
+      let refundPoints = 0;
 
-      if (contract.stakes > 0) {
-        // 50% refund minus 5% platform fee
-        const halfRefund = Math.floor(contract.stakes * 0.50 * 100) / 100;
-        const platformFee = Math.floor(contract.stakes * 0.05 * 100) / 100;
-        refundAmount = Math.floor((halfRefund - platformFee) * 100) / 100;
+      if (contract.pointsStaked > 0) {
+        // 50% refund of staked points (no platform fee)
+        refundPoints = Math.floor(contract.pointsStaked * 0.5);
 
         const wallet = await tx.wallet.findUniqueOrThrow({
           where: { userId: session.userId },
         });
 
-        // Release from locked, add refund to balance
+        // Release from lockedPoints, add refund to points
         await tx.wallet.update({
           where: { id: wallet.id },
           data: {
-            lockedBalance: { decrement: contract.stakes },
-            balance: { increment: refundAmount },
+            lockedPoints: { decrement: contract.pointsStaked },
+            points: { increment: refundPoints },
           },
         });
 
@@ -76,31 +74,20 @@ export async function POST(request: Request) {
             walletId: wallet.id,
             contractId,
             type: "stake_cancelled",
-            amount: refundAmount,
-            description: `Contract cancelled: refund ฿${refundAmount} (50% - 5% fee)`,
-          },
-        });
-
-        // Transaction: platform fee
-        await tx.transaction.create({
-          data: {
-            walletId: wallet.id,
-            contractId,
-            type: "platform_fee",
-            amount: -platformFee,
-            description: `Platform fee: ฿${platformFee} (5%)`,
+            amount: refundPoints,
+            description: `Contract cancelled: ${refundPoints} points refunded (50% of ${contract.pointsStaked} staked)`,
           },
         });
       }
 
-      return { refundAmount, stakes: contract.stakes };
+      return { refundPoints, pointsStaked: contract.pointsStaked };
     });
 
     return NextResponse.json({
       success: true,
       contractId,
-      originalStake: result.stakes,
-      refundAmount: result.refundAmount,
+      originalPointsStaked: result.pointsStaked,
+      refundPoints: result.refundPoints,
     });
   } catch (error) {
     console.error("Error cancelling contract:", error);

@@ -59,20 +59,15 @@ export async function GET() {
       where: { status: "failed" },
     });
 
-    // Pending withdrawals
-    const pendingWithdrawals = await prisma.withdrawRequest.count({
-      where: { status: "pending" },
-    });
-
     // Pending submissions
     const pendingSubmissions = await prisma.submission.count({
       where: { status: "pending" },
     });
 
-    // Total staked money
+    // Total staked points
     const stakedResult = await prisma.contract.aggregate({
       where: { status: "active" },
-      _sum: { stakes: true },
+      _sum: { pointsStaked: true },
     });
 
     return NextResponse.json({
@@ -88,9 +83,8 @@ export async function GET() {
         success: successContracts,
         failed: failedContracts,
       },
-      pendingWithdrawals,
       pendingSubmissions,
-      totalStaked: stakedResult._sum.stakes || 0,
+      totalPointsStaked: stakedResult._sum.pointsStaked || 0,
     });
   } catch (error) {
     console.error("Error fetching admin stats:", error);

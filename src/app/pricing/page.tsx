@@ -23,6 +23,7 @@ const PLANS: Plan[] = [
     pointsPerMonth: 0,
     features: [
       { th: "สัญญาได้ 1 รายการ", en: "1 Contract" },
+      { th: "5 pts/ส่งหลักฐาน", en: "5 pts/submission" },
       { th: "Streak พื้นฐาน", en: "Basic Streak" },
       { th: "ส่งหลักฐานรายวัน", en: "Daily Submissions" },
     ],
@@ -30,13 +31,15 @@ const PLANS: Plan[] = [
   {
     tier: "starter",
     price: 99,
-    maxContracts: 3,
-    pointsPerMonth: 100,
+    maxContracts: 5,
+    pointsPerMonth: 200,
     popular: true,
     features: [
-      { th: "สัญญาได้ 3 รายการ", en: "3 Contracts" },
-      { th: "100 Points/เดือน", en: "100 Points/Month" },
-      { th: "Streak Rewards", en: "Streak Rewards" },
+      { th: "สัญญาได้ 5 รายการ", en: "5 Contracts" },
+      { th: "200 Points/เดือน", en: "200 Points/Month" },
+      { th: "15 pts/ส่งหลักฐาน + 2x streak", en: "15 pts/submission + 2x streak" },
+      { th: "+10% โบนัสเดิมพัน", en: "+10% stake bonus" },
+      { th: "2x Streak Insurance", en: "2x Streak Insurance" },
       { th: "ตรวจสอบเร็วขึ้น", en: "Priority Review" },
     ],
   },
@@ -44,13 +47,15 @@ const PLANS: Plan[] = [
     tier: "pro",
     price: 299,
     maxContracts: null,
-    pointsPerMonth: 500,
+    pointsPerMonth: 1000,
     features: [
       { th: "สัญญาไม่จำกัด", en: "Unlimited Contracts" },
-      { th: "500 Points/เดือน", en: "500 Points/Month" },
-      { th: "ทุกฟีเจอร์", en: "All Features" },
+      { th: "1,000 Points/เดือน", en: "1,000 Points/Month" },
+      { th: "50 pts/ส่งหลักฐาน + 3x streak", en: "50 pts/submission + 3x streak" },
+      { th: "+25% โบนัสเดิมพัน", en: "+25% stake bonus" },
+      { th: "5x Streak Insurance", en: "5x Streak Insurance" },
+      { th: "All Premium Frames", en: "All Premium Frames" },
       { th: "ซัพพอร์ตด่วน", en: "Priority Support" },
-      { th: "Badges สะสม", en: "Achievement Badges" },
     ],
   },
 ];
@@ -260,6 +265,27 @@ export default function PricingPage() {
               )}
             </div>
           ))}
+        </div>
+
+        {/* Comparison Section */}
+        <div className="mt-16 mb-8">
+          <div className="bg-gradient-to-r from-orange-500/10 to-purple-500/10 border border-orange-500/20 rounded-2xl p-8 text-center">
+            <h3 className="text-2xl font-bold mb-4">
+              {t({ th: "Pro ได้แต้มมากกว่า Free ถึง 33 เท่า", en: "Pro earns 33x more points than Free users" })}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto mt-6">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-4">
+                <p className="text-sm text-gray-400 mb-1">{t({ th: "Pro 30 วัน", en: "Pro 30-day contract" })}</p>
+                <p className="text-3xl font-black text-orange-500">5,000+ pts</p>
+                <p className="text-xs text-gray-500 mt-1">{t({ th: "50 pts/วัน x3 streak + 1,000 โบนัส", en: "50 pts/day x3 streak + 1,000 bonus" })}</p>
+              </div>
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-4">
+                <p className="text-sm text-gray-400 mb-1">{t({ th: "Free 30 วัน", en: "Free 30-day contract" })}</p>
+                <p className="text-3xl font-black text-gray-500">~150 pts</p>
+                <p className="text-xs text-gray-500 mt-1">{t({ th: "5 pts/วัน ไม่มี streak โบนัส", en: "5 pts/day, no streak bonus" })}</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Rewards Preview Section */}

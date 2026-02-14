@@ -21,7 +21,7 @@ import {
 interface Contract {
   id: string;
   goal: string;
-  stakes: number;
+  pointsStaked: number;
   duration: number;
   daysCompleted: number;
   status: "active" | "success" | "failed";
@@ -31,8 +31,8 @@ interface Contract {
 }
 
 interface WalletData {
-  balance: number;
   points: number;
+  lockedPoints: number;
   streak: number;
 }
 
@@ -313,14 +313,14 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            {/* Wallet Balance */}
+            {/* Locked Points */}
             <Link href="/wallet">
               <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-2xl p-3 text-center hover:border-orange-500/30 transition-colors group cursor-pointer">
                 <p className="text-xl font-bold text-green-400 group-hover:text-green-300 transition-colors">
-                  {wallet?.balance?.toLocaleString() ?? 0}
+                  {(wallet?.lockedPoints ?? 0).toLocaleString()}
                 </p>
                 <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">
-                  {t({ th: "กระเป๋า", en: "Wallet" } as any)}
+                  {t({ th: "ล็อค", en: "Locked" } as any)}
                 </p>
               </div>
             </Link>
@@ -472,7 +472,7 @@ export default function DashboardPage() {
                       </div>
 
                       {/* Stakes info */}
-                      {contract.stakes > 0 && (
+                      {contract.pointsStaked > 0 && (
                         <div className="flex items-center gap-2 mb-3 text-sm">
                           <svg
                             className="w-3.5 h-3.5 text-gray-500"
@@ -484,14 +484,14 @@ export default function DashboardPage() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth={2}
-                              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                              d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
                             />
                           </svg>
                           <span className="text-gray-500">
                             {t({ th: "เดิมพัน", en: "Staked" } as any)}
                           </span>
                           <span className="text-orange-400 font-semibold">
-                            &#3647;{contract.stakes.toLocaleString()}
+                            {contract.pointsStaked.toLocaleString()} pts
                           </span>
                           <span className="text-xs text-gray-600">
                             ({t({ th: "ล็อคอยู่", en: "locked" } as any)})
@@ -657,7 +657,7 @@ export default function DashboardPage() {
                         )}
 
                         {/* Stakes info for completed */}
-                        {contract.stakes > 0 && (
+                        {contract.pointsStaked > 0 && (
                           <div className="flex items-center gap-2 mt-2 text-xs">
                             <span className="text-gray-600">
                               {t({ th: "เดิมพัน:", en: "Staked:" } as any)}
@@ -669,7 +669,7 @@ export default function DashboardPage() {
                                   : "text-red-400 font-semibold line-through"
                               }
                             >
-                              &#3647;{contract.stakes.toLocaleString()}
+                              {contract.pointsStaked.toLocaleString()} pts
                             </span>
                           </div>
                         )}
@@ -761,14 +761,14 @@ export default function DashboardPage() {
               </div>
 
               {/* Refund breakdown */}
-              {cancelConfirm.stakes > 0 ? (
+              {cancelConfirm.pointsStaked > 0 ? (
                 <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-6 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400">
-                      {t({ th: "เงินเดิมพัน:", en: "Original stake:" } as any)}
+                      {t({ th: "แต้มเดิมพัน:", en: "Original stake:" } as any)}
                     </span>
                     <span className="text-white font-semibold">
-                      &#3647;{cancelConfirm.stakes.toLocaleString()}
+                      {cancelConfirm.pointsStaked.toLocaleString()} pts
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -776,22 +776,7 @@ export default function DashboardPage() {
                       {t({ th: "คืน 50%:", en: "50% refund:" } as any)}
                     </span>
                     <span className="text-green-400">
-                      &#3647;
-                      {Math.floor(cancelConfirm.stakes * 0.5).toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">
-                      {t({
-                        th: "หักค่าบริการ 5%:",
-                        en: "5% service fee:",
-                      } as any)}
-                    </span>
-                    <span className="text-red-400">
-                      -&#3647;
-                      {Math.floor(
-                        cancelConfirm.stakes * 0.05
-                      ).toLocaleString()}
+                      {Math.floor(cancelConfirm.pointsStaked * 0.5).toLocaleString()} pts
                     </span>
                   </div>
                   <div className="border-t border-red-500/20 pt-2 flex justify-between">
@@ -799,21 +784,20 @@ export default function DashboardPage() {
                       {t({ th: "ได้รับจริง:", en: "You receive:" } as any)}
                     </span>
                     <span className="text-orange-400 font-bold text-lg">
-                      &#3647;
                       {Math.floor(
-                        cancelConfirm.stakes * 0.45
-                      ).toLocaleString()}
+                        cancelConfirm.pointsStaked * 0.5
+                      ).toLocaleString()} pts
                     </span>
                   </div>
                   <p className="text-xs text-red-400 mt-1">
-                    {t({ th: "* เสียเงิน", en: "* You lose" } as any)} &#3647;
+                    {t({ th: "* เสียแต้ม", en: "* You lose" } as any)}{" "}
                     {Math.floor(
-                      cancelConfirm.stakes * 0.55
-                    ).toLocaleString()}{" "}
+                      cancelConfirm.pointsStaked * 0.5
+                    ).toLocaleString()} pts{" "}
                     (
                     {t({
-                      th: "55% ของเดิมพัน",
-                      en: "55% of stake",
+                      th: "50% ของเดิมพัน",
+                      en: "50% of stake",
                     } as any)}
                     )
                   </p>
@@ -822,7 +806,7 @@ export default function DashboardPage() {
                 <div className="bg-[var(--bg-card-inner)] rounded-xl p-4 mb-6">
                   <p className="text-sm text-gray-400 text-center">
                     {t({
-                      th: "ไม่มีเงินเดิมพัน — ไม่มีค่าใช้จ่าย",
+                      th: "ไม่มีแต้มเดิมพัน — ไม่มีค่าใช้จ่าย",
                       en: "No stake — no cost to cancel",
                     } as any)}
                   </p>

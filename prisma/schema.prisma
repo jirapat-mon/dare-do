@@ -37,15 +37,13 @@ model Wallet {
   id               String             @id @default(cuid())
   userId           String             @unique
   user             User               @relation(fields: [userId], references: [id])
-  balance          Float              @default(0) // available money (THB)
-  lockedBalance    Float              @default(0) // money locked in active contracts
+  lockedPoints     Int                @default(0) // points locked in active contracts
   points           Int                @default(0)
   streak           Int                @default(0)
   lastActiveAt     DateTime?
   transactions     Transaction[]
   redemptions      RewardRedemption[]
   streakInsurances StreakInsurance[]
-  withdrawRequests WithdrawRequest[]
 }
 
 model Transaction {
@@ -55,7 +53,7 @@ model Transaction {
   contractId  String?
   contract    Contract? @relation(fields: [contractId], references: [id])
   type        String // subscription, points_earned, points_redeemed, streak_bonus
-  amount      Float
+  amount      Int
   description String
   createdAt   DateTime  @default(now())
 }
@@ -67,7 +65,7 @@ model Contract {
   goal             String
   duration         Int
   deadline         String             // HH:mm daily deadline
-  stakes           Float              @default(0) // money staked (THB)
+  pointsStaked     Int                @default(0) // points staked
   status           String             @default("active") // active, success, failed
   daysCompleted    Int                @default(0)
   createdAt        DateTime           @default(now())
@@ -184,20 +182,6 @@ model Friendship {
   @@unique([userId, friendId])
 }
 
-// Withdraw Request — ถอนเงินจาก wallet
-model WithdrawRequest {
-  id          String    @id @default(cuid())
-  walletId    String
-  wallet      Wallet    @relation(fields: [walletId], references: [id])
-  amount      Float
-  bankName    String    // ธนาคาร e.g. "SCB", "KBANK"
-  bankAccount String    // เลขบัญชี
-  accountName String    // ชื่อบัญชี
-  status      String    @default("pending") // pending, approved, rejected, completed
-  note        String?   // admin note
-  createdAt   DateTime  @default(now())
-  processedAt DateTime?
-}
 
 // User Owned Avatar Frames — purchased premium frames
 model UserOwnedFrame {

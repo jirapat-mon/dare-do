@@ -32,7 +32,7 @@ export async function GET() {
       goal: c.goal,
       duration: c.duration,
       daysCompleted: c.daysCompleted,
-      stakes: c.stakes,
+      pointsStaked: c.pointsStaked,
       createdAt: c.createdAt.toISOString(),
     }));
 

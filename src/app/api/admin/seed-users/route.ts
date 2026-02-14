@@ -82,8 +82,12 @@ export async function POST() {
           : randomBetween(0, 2000);
 
       const streak = randomBetween(0, tier === "pro" ? 100 : tier === "starter" ? 30 : 7);
-      const balance = tier === "free" ? 0 : randomBetween(0, 5000);
-      const stakes = tier === "free" ? 0 : randomBetween(0, 2000);
+      const initialPoints = tier === "pro"
+        ? randomBetween(500, 5000)
+        : tier === "starter"
+          ? randomBetween(100, 2000)
+          : randomBetween(0, 500);
+      const lockedPoints = tier === "free" ? 0 : randomBetween(0, Math.floor(initialPoints * 0.5));
 
       // Create user with wallet and contracts
       const user = await prisma.user.create({
@@ -99,9 +103,8 @@ export async function POST() {
           subscriptionEndsAt: tier === "free" ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
           wallet: {
             create: {
-              balance,
-              lockedBalance: stakes,
-              points: randomBetween(0, lifetimePoints),
+              points: initialPoints,
+              lockedPoints,
               streak,
               lastActiveAt: new Date(Date.now() - randomBetween(0, 7) * 24 * 60 * 60 * 1000),
             },
@@ -115,7 +118,7 @@ export async function POST() {
         const duration = randomItem([7, 14, 30, 60]);
         const daysCompleted = randomBetween(0, duration);
         const status = daysCompleted >= duration ? "success" : j === 0 ? "active" : randomItem(["active", "success", "failed"] as const);
-        const contractStakes = tier === "free" ? 0 : randomBetween(0, 500);
+        const contractPointsStaked = tier === "free" ? 0 : randomBetween(0, 500);
         const goal = randomItem(GOALS);
 
         const contract = await prisma.contract.create({
@@ -124,7 +127,7 @@ export async function POST() {
             goal,
             duration,
             deadline: `${randomBetween(6, 23).toString().padStart(2, "0")}:00`,
-            stakes: contractStakes,
+            pointsStaked: contractPointsStaked,
             status,
             daysCompleted: Math.min(daysCompleted, duration),
           },

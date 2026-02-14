@@ -3,7 +3,9 @@ import { requireAdmin } from "@/lib/jwt";
 import { prisma, type PrismaTransactionClient } from "@/lib/db";
 import {
   calculatePoints,
+  calculateStakeReturn,
   COMPLETION_BONUS,
+  STAKE_BONUS_PERCENT,
   type SubscriptionTier,
 } from "@/lib/gamification";
 
@@ -157,32 +159,34 @@ export async function POST(request: NextRequest) {
             });
           }
 
-          // Escrow settlement — return 100% of stakes + 0.5% bonus on success
-          if (updatedContract.stakes > 0) {
-            const returnAmount = updatedContract.stakes;
-            const bonusAmount = Math.floor(updatedContract.stakes * 0.005 * 100) / 100; // 0.5% bonus
-            const totalReturn = returnAmount + bonusAmount;
+          // Escrow settlement — return staked points with tier bonus on success
+          if (updatedContract.pointsStaked > 0) {
+            const { returnAmount, bonusAmount } = calculateStakeReturn(
+              subscriptionTier,
+              updatedContract.pointsStaked
+            );
 
+            // Return staked points (+ bonus) to wallet, release from locked
             await tx.wallet.update({
               where: { id: wallet.id },
               data: {
-                balance: { increment: totalReturn },
-                lockedBalance: { decrement: updatedContract.stakes },
+                points: { increment: returnAmount },
+                lockedPoints: { decrement: updatedContract.pointsStaked },
               },
             });
 
-            // Transaction record for stake return (100%)
+            // Transaction record for points returned
             await tx.transaction.create({
               data: {
                 walletId: wallet.id,
                 contractId: submission.contractId,
-                type: "stake_returned",
-                amount: returnAmount,
-                description: `Contract success: ฿${returnAmount} returned (100%)`,
+                type: "points_returned",
+                amount: updatedContract.pointsStaked,
+                description: `Contract success: ${updatedContract.pointsStaked} points returned`,
               },
             });
 
-            // Transaction record for 0.5% bonus
+            // Transaction record for tier bonus (if any)
             if (bonusAmount > 0) {
               await tx.transaction.create({
                 data: {
@@ -190,7 +194,7 @@ export async function POST(request: NextRequest) {
                   contractId: submission.contractId,
                   type: "stake_bonus",
                   amount: bonusAmount,
-                  description: `Completion bonus: ฿${bonusAmount} (0.5% of ฿${updatedContract.stakes} stake)`,
+                  description: `Stake bonus: +${bonusAmount} points (${STAKE_BONUS_PERCENT[subscriptionTier]}% of ${updatedContract.pointsStaked} staked)`,
                 },
               });
             }
@@ -254,8 +258,8 @@ export async function POST(request: NextRequest) {
           data: { status: "failed" },
         });
 
-        // Escrow settlement — forfeit stakes on failure
-        if (failedContract.stakes > 0) {
+        // Escrow settlement — forfeit staked points on failure
+        if (failedContract.pointsStaked > 0) {
           const userId = failedContract.userId;
           let wallet = await tx.wallet.findUnique({ where: { userId } });
           if (!wallet) {
@@ -264,19 +268,20 @@ export async function POST(request: NextRequest) {
             });
           }
 
+          // Remove from lockedPoints (points are forfeited, not returned)
           await tx.wallet.update({
             where: { id: wallet.id },
             data: {
-              lockedBalance: { decrement: failedContract.stakes },
+              lockedPoints: { decrement: failedContract.pointsStaked },
             },
           });
           await tx.transaction.create({
             data: {
               walletId: wallet.id,
               contractId: submission.contractId,
-              type: "stake_forfeited",
-              amount: -failedContract.stakes,
-              description: `Contract failed: ฿${failedContract.stakes} forfeited`,
+              type: "points_forfeited",
+              amount: -failedContract.pointsStaked,
+              description: `Contract failed: ${failedContract.pointsStaked} points forfeited`,
             },
           });
         }

@@ -265,7 +265,7 @@ export default function HomePage() {
           {/* Pill badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full border border-orange-500/20 bg-orange-500/5 text-orange-400 text-sm font-medium">
             <SparklesIcon className="w-4 h-4" />
-            <span>{t({ th: "แพลตฟอร์ม #1 สำหรับเดิมพันกับตัวเอง", en: "#1 Platform for Self-Accountability Bets" })}</span>
+            <span>{t({ th: "แพลตฟอร์ม #1 สำหรับ Self-Discipline Challenges", en: "#1 Platform for Self-Discipline Challenges" })}</span>
           </div>
 
           <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-8 leading-[1.1] tracking-tight">
@@ -407,10 +407,10 @@ export default function HomePage() {
             {/* Stat 2 */}
             <div className="relative text-center p-8 rounded-2xl border border-[#1A1A1A] bg-[#111111]/50">
               <div className="flex items-center justify-center mb-4">
-                <BanknoteIcon className="w-6 h-6 text-orange-500/60" />
+                <StarIcon className="w-6 h-6 text-orange-500/60" />
               </div>
               <div className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-orange-600 mb-3">
-                &#3647;2.5M+
+                500K+
               </div>
               <p className="text-gray-400 text-lg">{t("stats.totalStakes")}</p>
             </div>
@@ -459,7 +459,7 @@ export default function HomePage() {
                 {t({ th: "Loss Aversion", en: "Loss Aversion" })}
               </h3>
               <p className="text-gray-500 text-sm leading-relaxed">
-                {t({ th: "คนเรากลัวเสียเงินมากกว่าอยากได้เงิน จิตวิทยาตัวนี้จะผลักดันคุณ", en: "People fear losing money more than gaining it. This psychology will push you forward." })}
+                {t({ th: "คนเรากลัวเสียแต้มที่สะสมมามากกว่าอยากได้แต้มใหม่ จิตวิทยาตัวนี้จะผลักดันคุณ", en: "People fear losing hard-earned points more than gaining new ones. This psychology will push you forward." })}
               </p>
             </div>
 
@@ -515,16 +515,16 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Feature 6 - Real Money */}
+            {/* Feature 6 - Points Stakes */}
             <div className="p-6 rounded-2xl border border-[#1A1A1A] bg-[#111111]/50 hover:border-[#2A2A2A] transition-all duration-300">
               <div className="w-12 h-12 rounded-xl bg-yellow-500/10 flex items-center justify-center mb-5">
-                <BanknoteIcon className="w-6 h-6 text-yellow-400" />
+                <StarIcon className="w-6 h-6 text-yellow-400" />
               </div>
               <h3 className="text-lg font-bold mb-2">
-                {t({ th: "เงินจริง เดิมพันจริง", en: "Real Money, Real Stakes" })}
+                {t({ th: "วางแต้มเดิมพัน", en: "Points Stakes" })}
               </h3>
               <p className="text-gray-500 text-sm leading-relaxed">
-                {t({ th: "วางเงินจริงตั้งแต่ 100 บาท ทำสำเร็จได้คืน 100% + โบนัส 0.5% ล้มเหลวเสียหมด", en: "Stake real money from 100 baht. Succeed and get 100.5% back. Fail and lose it all." })}
+                {t({ th: "วางแต้มเดิมพัน ทำสำเร็จได้คืน + โบนัสตามแพลน ล้มเหลวเสียแต้มทั้งหมด", en: "Stake your points. Succeed and get them back + tier bonus. Fail and lose them all." })}
               </p>
             </div>
           </div>
@@ -578,7 +578,7 @@ export default function HomePage() {
           </h2>
 
           <p className="text-gray-400 text-lg md:text-xl mb-12 max-w-2xl mx-auto">
-            {t({ th: "เริ่มต้นเปลี่ยนแปลงตัวเองวันนี้ ด้วยพลังของเงินเดิมพัน", en: "Start transforming yourself today, powered by the stakes you set." })}
+            {t({ th: "เริ่มต้นเปลี่ยนแปลงตัวเองวันนี้ ด้วยพลังของวินัยและ gamification", en: "Start transforming yourself today, powered by discipline and gamification." })}
           </p>
 
           <Link
