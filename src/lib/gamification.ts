@@ -7,7 +7,7 @@ export type SubscriptionTier = "free" | "starter" | "pro";
 export const POINTS_PER_TIER: Record<SubscriptionTier, number> = {
   free: 5,
   starter: 10,
-  pro: 15,
+  pro: 35,
 };
 
 // --- Streak multiplier (kicks in at STREAK_THRESHOLD days) ---
