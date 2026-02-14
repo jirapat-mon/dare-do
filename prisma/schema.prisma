@@ -41,6 +41,7 @@ model Wallet {
   transactions     Transaction[]
   redemptions      RewardRedemption[]
   streakInsurances StreakInsurance[]
+  withdrawRequests WithdrawRequest[]
 }
 
 model Transaction {
@@ -177,4 +178,19 @@ model Friendship {
   friend User @relation("FriendshipReceived", fields: [friendId], references: [id])
 
   @@unique([userId, friendId])
+}
+
+// Withdraw Request — ถอนเงินจาก wallet
+model WithdrawRequest {
+  id          String    @id @default(cuid())
+  walletId    String
+  wallet      Wallet    @relation(fields: [walletId], references: [id])
+  amount      Float
+  bankName    String    // ธนาคาร e.g. "SCB", "KBANK"
+  bankAccount String    // เลขบัญชี
+  accountName String    // ชื่อบัญชี
+  status      String    @default("pending") // pending, approved, rejected, completed
+  note        String?   // admin note
+  createdAt   DateTime  @default(now())
+  processedAt DateTime?
 }

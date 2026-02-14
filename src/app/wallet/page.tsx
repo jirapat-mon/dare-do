@@ -90,7 +90,22 @@ function WalletContent() {
     limit: number;
   } | null>(null);
 
+  // Top-up states
+  const [showTopup, setShowTopup] = useState(false);
+  const [topupAmount, setTopupAmount] = useState(100);
+  const [topupLoading, setTopupLoading] = useState(false);
+
+  // Withdraw states
+  const [showWithdraw, setShowWithdraw] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState(100);
+  const [withdrawBank, setWithdrawBank] = useState("");
+  const [withdrawAccount, setWithdrawAccount] = useState("");
+  const [withdrawName, setWithdrawName] = useState("");
+  const [withdrawLoading, setWithdrawLoading] = useState(false);
+  const [withdrawMsg, setWithdrawMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   const subscriptionStatus = searchParams.get("subscription");
+  const topupStatus = searchParams.get("topup");
 
   useEffect(() => {
     fetchData();
@@ -136,6 +151,70 @@ function WalletContent() {
       console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleTopup = async () => {
+    setTopupLoading(true);
+    try {
+      // Try real Stripe checkout first
+      const checkoutRes = await fetch("/api/wallet/topup/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: topupAmount }),
+      });
+      const checkoutData = await checkoutRes.json();
+      if (checkoutRes.ok && checkoutData.url) {
+        window.location.href = checkoutData.url;
+        return;
+      }
+      // Fallback to demo topup
+      const res = await fetch("/api/wallet/topup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: topupAmount }),
+      });
+      if (res.ok) {
+        setShowTopup(false);
+        fetchData();
+      }
+    } catch {
+      // ignore
+    } finally {
+      setTopupLoading(false);
+    }
+  };
+
+  const handleWithdraw = async () => {
+    if (!withdrawBank || !withdrawAccount || !withdrawName) return;
+    setWithdrawLoading(true);
+    setWithdrawMsg(null);
+    try {
+      const res = await fetch("/api/wallet/withdraw", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: withdrawAmount,
+          bankName: withdrawBank,
+          bankAccount: withdrawAccount,
+          accountName: withdrawName,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setWithdrawMsg({ type: "success", text: t({ th: "ส่งคำขอถอนเงินสำเร็จ! รอดำเนินการภายใน 24 ชั่วโมง", en: "Withdrawal request submitted! Processing within 24 hours" }) });
+        setShowWithdraw(false);
+        setWithdrawBank("");
+        setWithdrawAccount("");
+        setWithdrawName("");
+        fetchData();
+      } else {
+        setWithdrawMsg({ type: "error", text: data.error || "Error" });
+      }
+    } catch {
+      setWithdrawMsg({ type: "error", text: "Error" });
+    } finally {
+      setWithdrawLoading(false);
     }
   };
 
@@ -301,10 +380,138 @@ function WalletContent() {
           {/* Subscription Success Banner */}
           {subscriptionStatus === "success" && (
             <div className="bg-green-500/20 border border-green-500 text-green-400 rounded-xl px-4 py-3 mb-6">
-              {t({
-                th: "สมัครสมาชิกสำเร็จ!",
-                en: "Subscription activated!",
-              })}
+              {t({ th: "สมัครสมาชิกสำเร็จ!", en: "Subscription activated!" })}
+            </div>
+          )}
+
+          {/* Topup Success Banner */}
+          {topupStatus === "success" && (
+            <div className="bg-green-500/20 border border-green-500 text-green-400 rounded-xl px-4 py-3 mb-6">
+              {t({ th: "เติมเงินสำเร็จ!", en: "Top-up successful!" })}
+            </div>
+          )}
+
+          {/* Withdraw message */}
+          {withdrawMsg && (
+            <div className={`rounded-xl px-4 py-3 mb-6 ${withdrawMsg.type === "success" ? "bg-green-500/20 border border-green-500 text-green-400" : "bg-red-500/20 border border-red-500 text-red-400"}`}>
+              {withdrawMsg.text}
+            </div>
+          )}
+
+          {/* === Money Balance Card === */}
+          <div className="bg-gradient-to-br from-[#0d1a0d] to-[#111111] border border-green-500/20 rounded-2xl p-6 mb-6">
+            <h2 className="text-sm text-gray-400 mb-3">
+              {t({ th: "กระเป๋าเงิน", en: "Money Wallet" })}
+            </h2>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <p className="text-xs text-gray-500 mb-1">{t({ th: "ยอดถอนได้", en: "Available" })}</p>
+                <p className="text-2xl font-bold text-green-400">&#3647;{(wallet?.balance || 0).toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">{t({ th: "ล็อคใน contract", en: "Locked in contracts" })}</p>
+                <p className="text-2xl font-bold text-orange-400">&#3647;{(wallet?.lockedBalance || 0).toLocaleString()}</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowTopup(true)}
+                className="flex-1 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-full py-3 transition text-sm"
+              >
+                {t({ th: "เติมเงิน", en: "Top Up" })}
+              </button>
+              <button
+                onClick={() => setShowWithdraw(true)}
+                disabled={(wallet?.balance || 0) < 100}
+                className="flex-1 border border-[#333] text-gray-300 hover:text-white hover:border-white font-semibold rounded-full py-3 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {t({ th: "ถอนเงิน", en: "Withdraw" })}
+              </button>
+            </div>
+          </div>
+
+          {/* Top-up Modal */}
+          {showTopup && (
+            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6 max-w-md w-full">
+                <h3 className="text-xl font-bold mb-4">{t({ th: "เติมเงิน", en: "Top Up" })}</h3>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {[50, 100, 200, 500, 1000, 2000].map((amt) => (
+                    <button
+                      key={amt}
+                      onClick={() => setTopupAmount(amt)}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition ${topupAmount === amt ? "bg-green-500 text-white" : "bg-[#1A1A1A] text-gray-400 border border-[#333] hover:border-green-500"}`}
+                    >
+                      &#3647;{amt.toLocaleString()}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="number"
+                  value={topupAmount}
+                  onChange={(e) => setTopupAmount(Number(e.target.value))}
+                  min={20}
+                  max={100000}
+                  className="w-full bg-[#1A1A1A] border border-[#333] rounded-xl px-4 py-3 text-white mb-4 focus:outline-none focus:border-green-500"
+                  placeholder="฿"
+                />
+                <div className="flex gap-3">
+                  <button onClick={() => setShowTopup(false)} className="flex-1 border border-[#333] text-gray-400 rounded-full py-3 font-semibold transition hover:text-white hover:border-white">
+                    {t({ th: "ยกเลิก", en: "Cancel" })}
+                  </button>
+                  <button onClick={handleTopup} disabled={topupLoading || topupAmount < 20} className="flex-1 bg-green-600 hover:bg-green-500 text-white rounded-full py-3 font-semibold transition disabled:opacity-50">
+                    {topupLoading ? t({ th: "กำลังดำเนินการ...", en: "Processing..." }) : t({ th: `เติม ฿${topupAmount.toLocaleString()}`, en: `Top Up ฿${topupAmount.toLocaleString()}` })}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Withdraw Modal */}
+          {showWithdraw && (
+            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6 max-w-md w-full">
+                <h3 className="text-xl font-bold mb-2">{t({ th: "ถอนเงิน", en: "Withdraw" })}</h3>
+                <p className="text-xs text-gray-500 mb-4">{t({ th: "ใช้เวลาดำเนินการไม่เกิน 24 ชั่วโมง", en: "Processing time up to 24 hours" })}</p>
+                <div className="space-y-3 mb-4">
+                  <div>
+                    <label className="text-xs text-gray-400 mb-1 block">{t({ th: "จำนวนเงิน (ขั้นต่ำ ฿100)", en: "Amount (min ฿100)" })}</label>
+                    <input type="number" value={withdrawAmount} onChange={(e) => setWithdrawAmount(Number(e.target.value))} min={100} max={wallet?.balance || 0} className="w-full bg-[#1A1A1A] border border-[#333] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-400 mb-1 block">{t({ th: "ธนาคาร", en: "Bank" })}</label>
+                    <select value={withdrawBank} onChange={(e) => setWithdrawBank(e.target.value)} className="w-full bg-[#1A1A1A] border border-[#333] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500">
+                      <option value="">{t({ th: "เลือกธนาคาร", en: "Select bank" })}</option>
+                      <option value="SCB">SCB ไทยพาณิชย์</option>
+                      <option value="KBANK">KBANK กสิกร</option>
+                      <option value="KTB">KTB กรุงไทย</option>
+                      <option value="BBL">BBL กรุงเทพ</option>
+                      <option value="TMB">TTB ทีเอ็มบี</option>
+                      <option value="BAY">BAY กรุงศรี</option>
+                      <option value="GSB">GSB ออมสิน</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-400 mb-1 block">{t({ th: "เลขบัญชี", en: "Account number" })}</label>
+                    <input type="text" value={withdrawAccount} onChange={(e) => setWithdrawAccount(e.target.value)} placeholder="xxx-x-xxxxx-x" className="w-full bg-[#1A1A1A] border border-[#333] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-400 mb-1 block">{t({ th: "ชื่อบัญชี", en: "Account name" })}</label>
+                    <input type="text" value={withdrawName} onChange={(e) => setWithdrawName(e.target.value)} className="w-full bg-[#1A1A1A] border border-[#333] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500" />
+                  </div>
+                </div>
+                <p className="text-xs text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 mb-4">
+                  {t({ th: "หลังจากส่งคำขอ เงินจะถูกหักจากยอดถอนได้ทันที และจะโอนเข้าบัญชีภายใน 24 ชั่วโมง", en: "After submitting, the amount will be deducted immediately and transferred within 24 hours" })}
+                </p>
+                <div className="flex gap-3">
+                  <button onClick={() => { setShowWithdraw(false); setWithdrawMsg(null); }} className="flex-1 border border-[#333] text-gray-400 rounded-full py-3 font-semibold transition hover:text-white hover:border-white">
+                    {t({ th: "ยกเลิก", en: "Cancel" })}
+                  </button>
+                  <button onClick={handleWithdraw} disabled={withdrawLoading || withdrawAmount < 100 || !withdrawBank || !withdrawAccount || !withdrawName || withdrawAmount > (wallet?.balance || 0)} className="flex-1 bg-orange-500 hover:bg-orange-400 text-white rounded-full py-3 font-semibold transition disabled:opacity-50">
+                    {withdrawLoading ? t({ th: "กำลังดำเนินการ...", en: "Processing..." }) : t({ th: `ถอน ฿${withdrawAmount.toLocaleString()}`, en: `Withdraw ฿${withdrawAmount.toLocaleString()}` })}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
