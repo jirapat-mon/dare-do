@@ -37,7 +37,7 @@ export default function LoginPage() {
       window.location.href = "/api/auth/google";
       return;
     }
-    alert(`Social login with ${provider} is not yet implemented`);
+    alert(t({ th: `การเข้าสู่ระบบด้วย ${provider} ยังไม่พร้อมใช้งาน`, en: `Social login with ${provider} is not yet implemented` }));
   };
 
   return (
@@ -115,7 +115,7 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold py-3 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Logging in..." : t("auth.loginButton")}
+            {loading ? t({ th: "กำลังเข้าสู่ระบบ...", en: "Logging in..." }) : t("auth.loginButton")}
           </button>
         </form>
 

@@ -205,11 +205,11 @@ export default function AdminPage() {
         });
       } else {
         const data = await res.json();
-        alert(`Error: ${data.error || "Failed to review submission"}`);
+        alert(`${t({ th: "เกิดข้อผิดพลาด", en: "Error" })}: ${data.error || t({ th: "ไม่สามารถตรวจสอบได้", en: "Failed to review submission" })}`);
       }
     } catch (err) {
       console.error("Error reviewing submission:", err);
-      alert("Failed to review submission");
+      alert(t({ th: "ไม่สามารถตรวจสอบได้", en: "Failed to review submission" }));
     } finally {
       setProcessingIds((prev) => {
         const newSet = new Set(prev);
@@ -355,7 +355,7 @@ export default function AdminPage() {
           {/* Withdrawals Tab */}
           {activeTab === "withdrawals" ? (
             withdrawalsLoading ? (
-              <div className="text-gray-500 text-center py-12">Loading...</div>
+              <div className="text-gray-500 text-center py-12">{t({ th: "กำลังโหลด...", en: "Loading..." })}</div>
             ) : withdrawals.length === 0 ? (
               <div className="text-gray-500 text-center py-12">
                 {t({ th: "ไม่มีคำขอถอนเงินที่รอดำเนินการ", en: "No pending withdrawal requests" })}
@@ -412,7 +412,7 @@ export default function AdminPage() {
           ) : /* Revenue Tab */
           activeTab === "revenue" ? (
             revenueLoading ? (
-              <div className="text-gray-500 text-center py-12">Loading...</div>
+              <div className="text-gray-500 text-center py-12">{t({ th: "กำลังโหลด...", en: "Loading..." })}</div>
             ) : (
               <div className="space-y-6">
                 {/* Revenue Stats */}
@@ -521,7 +521,7 @@ export default function AdminPage() {
               </div>
             )
           ) : loading ? (
-            <div className="text-gray-500 text-center py-12">Loading...</div>
+            <div className="text-gray-500 text-center py-12">{t({ th: "กำลังโหลด...", en: "Loading..." })}</div>
           ) : submissions.length === 0 ? (
             <div className="text-gray-500 text-center py-12">
               {t("admin.noSubmissions")}
@@ -558,12 +558,12 @@ export default function AdminPage() {
                   <div className="bg-[#1A1A1A] w-full h-48 rounded-xl overflow-hidden flex items-center justify-center text-gray-500 mb-3">
                     <img
                       src={submission.imageData}
-                      alt="Evidence"
+                      alt={t({ th: "หลักฐาน", en: "Evidence" })}
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         e.currentTarget.style.display = "none";
                         e.currentTarget.parentElement!.textContent =
-                          "Image not available";
+                          t({ th: "ไม่สามารถแสดงรูปภาพได้", en: "Image not available" });
                       }}
                     />
                   </div>
@@ -571,14 +571,14 @@ export default function AdminPage() {
                   {/* Note */}
                   {submission.note && (
                     <div className="mb-3 text-sm text-gray-300 bg-[#1A1A1A] p-3 rounded-lg">
-                      <span className="text-gray-400">Note: </span>
+                      <span className="text-gray-400">{t({ th: "หมายเหตุ: ", en: "Note: " })}</span>
                       {submission.note}
                     </div>
                   )}
 
                   {/* Metadata - Live capture badge */}
                   <div className="text-xs text-green-400 mb-2">
-                    Live Capture ✓
+                    {t({ th: "ถ่ายสด ✓", en: "Live Capture ✓" })}
                   </div>
 
                   {/* Submitted At */}
@@ -611,7 +611,7 @@ export default function AdminPage() {
                           className="flex-1 bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-full font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {processingIds.has(submission.id)
-                            ? "Processing..."
+                            ? t({ th: "กำลังดำเนินการ...", en: "Processing..." })
                             : t("admin.approve")}
                         </button>
                         <button
@@ -622,18 +622,18 @@ export default function AdminPage() {
                           className="flex-1 bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-full font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {processingIds.has(submission.id)
-                            ? "Processing..."
+                            ? t({ th: "กำลังดำเนินการ...", en: "Processing..." })
                             : t("admin.reject")}
                         </button>
                       </div>
                     </>
                   ) : submission.status === "approved" ? (
                     <div className="bg-green-500/20 text-green-400 rounded-full px-3 py-1 inline-block mt-3">
-                      Approved
+                      {t("admin.approved")}
                     </div>
                   ) : (
                     <div className="bg-red-500/20 text-red-400 rounded-full px-3 py-1 inline-block mt-3">
-                      Rejected
+                      {t("admin.rejected")}
                     </div>
                   )}
                 </div>

@@ -138,7 +138,17 @@ export default function FriendsPage() {
       const res = await fetch("/api/friends/activity");
       if (res.ok) {
         const data = await res.json();
-        setActivities(data.activities || []);
+        // Map API response fields to frontend ActivityItem interface
+        // API returns: { activity: [{ friendId, friendName, goal, submissionStatus, createdAt }] }
+        // Frontend expects: { id, userName, goal, status, createdAt }
+        const mapped = (data.activity || []).map((item: { friendId: string; friendName: string | null; goal: string; submissionStatus: string; createdAt: string }, idx: number) => ({
+          id: item.friendId + "-" + idx,
+          userName: item.friendName || t({ th: "ผู้ใช้", en: "User" }),
+          goal: item.goal,
+          status: item.submissionStatus,
+          createdAt: item.createdAt,
+        }));
+        setActivities(mapped);
       }
     } catch {
       // silently fail
@@ -177,7 +187,17 @@ export default function FriendsPage() {
           );
           if (res.ok) {
             const data = await res.json();
-            setSearchResults(data.users || []);
+            // Map API response (friendshipStatus) to frontend interface (isFriend/isPending)
+            const mapped = (data.users || []).map((u: { id: string; name: string | null; email: string; lifetimePoints: number; province: string | null; friendshipStatus?: string }) => ({
+              id: u.id,
+              name: u.name,
+              email: u.email,
+              lifetimePoints: u.lifetimePoints,
+              province: u.province,
+              isFriend: u.friendshipStatus === "accepted",
+              isPending: u.friendshipStatus === "pending",
+            }));
+            setSearchResults(mapped);
           }
         } catch {
           // silently fail

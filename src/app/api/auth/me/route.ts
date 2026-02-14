@@ -23,6 +23,7 @@ export async function GET() {
         name: true,
         role: true,
         avatarUrl: true,
+        bannerUrl: true,
         avatarFrame: true,
         createdAt: true,
       },
@@ -42,6 +43,7 @@ export async function GET() {
         name: user.name,
         role: user.role,
         avatarUrl: user.avatarUrl,
+        bannerUrl: user.bannerUrl,
         avatarFrame: user.avatarFrame,
       },
     });

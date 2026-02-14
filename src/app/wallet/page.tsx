@@ -3,8 +3,8 @@
 import { useI18n } from "@/lib/i18n";
 import AuthGuard from "@/components/AuthGuard";
 import Link from "next/link";
-import { useEffect, useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState, useRef, useCallback, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import StreakFire from "@/components/StreakFire";
 import RankBadge from "@/components/RankBadge";
 import {
@@ -70,7 +70,10 @@ export default function WalletPage() {
 function WalletContent() {
   const { t } = useI18n();
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const topupVerifiedRef = useRef(false);
   const [loading, setLoading] = useState(true);
+  const [topupMsg, setTopupMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [subscription, setSubscription] = useState<SubscriptionData | null>(
@@ -106,10 +109,87 @@ function WalletContent() {
 
   const subscriptionStatus = searchParams.get("subscription");
   const topupStatus = searchParams.get("topup");
+  const topupAmount_param = searchParams.get("amount");
+  const stripeSessionId = searchParams.get("session_id");
+
+  const verifyAndCreditTopup = useCallback(async () => {
+    if (topupVerifiedRef.current) return;
+    topupVerifiedRef.current = true;
+
+    try {
+      // Approach 1: Try verify via Stripe session ID (proper verification)
+      if (stripeSessionId) {
+        const res = await fetch("/api/wallet/topup/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId: stripeSessionId }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.alreadyCredited) {
+            setTopupMsg({
+              type: "success",
+              text: t({ th: "เติมเงินสำเร็จแล้ว!", en: "Top-up already credited!" }),
+            });
+          } else {
+            setTopupMsg({
+              type: "success",
+              text: t({
+                th: `เติมเงิน ฿${topupAmount_param || ""} สำเร็จ!`,
+                en: `Top-up ฿${topupAmount_param || ""} successful!`,
+              }),
+            });
+          }
+          fetchData();
+          // Clean URL params
+          router.replace("/wallet", { scroll: false });
+          return;
+        }
+      }
+
+      // Approach 2: Fallback — use demo topup with the amount from URL
+      if (topupAmount_param) {
+        const amount = parseFloat(topupAmount_param);
+        if (!isNaN(amount) && amount >= 20 && amount <= 100000) {
+          const res = await fetch("/api/wallet/topup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ amount }),
+          });
+          if (res.ok) {
+            setTopupMsg({
+              type: "success",
+              text: t({
+                th: `เติมเงิน ฿${amount.toLocaleString()} สำเร็จ!`,
+                en: `Top-up ฿${amount.toLocaleString()} successful!`,
+              }),
+            });
+            fetchData();
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Topup verification error:", error);
+      setTopupMsg({
+        type: "error",
+        text: t({ th: "เกิดข้อผิดพลาดในการตรวจสอบการเติมเงิน", en: "Error verifying top-up" }),
+      });
+    }
+
+    // Clean URL params
+    router.replace("/wallet", { scroll: false });
+  }, [stripeSessionId, topupAmount_param, router, t]);
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Handle topup success redirect from Stripe
+  useEffect(() => {
+    if (topupStatus === "success") {
+      verifyAndCreditTopup();
+    }
+  }, [topupStatus, verifyAndCreditTopup]);
 
   const fetchData = async () => {
     try {
@@ -209,10 +289,10 @@ function WalletContent() {
         setWithdrawName("");
         fetchData();
       } else {
-        setWithdrawMsg({ type: "error", text: data.error || "Error" });
+        setWithdrawMsg({ type: "error", text: data.error || t({ th: "เกิดข้อผิดพลาด", en: "Error" }) });
       }
     } catch {
-      setWithdrawMsg({ type: "error", text: "Error" });
+      setWithdrawMsg({ type: "error", text: t({ th: "เกิดข้อผิดพลาด", en: "Error" }) });
     } finally {
       setWithdrawLoading(false);
     }
@@ -358,7 +438,7 @@ function WalletContent() {
         <div className="min-h-screen bg-[#0A0A0A] text-white flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-            <p className="text-gray-400">Loading...</p>
+            <p className="text-gray-400">{t({ th: "กำลังโหลด...", en: "Loading..." })}</p>
           </div>
         </div>
       </AuthGuard>
@@ -384,10 +464,10 @@ function WalletContent() {
             </div>
           )}
 
-          {/* Topup Success Banner */}
-          {topupStatus === "success" && (
-            <div className="bg-green-500/20 border border-green-500 text-green-400 rounded-xl px-4 py-3 mb-6">
-              {t({ th: "เติมเงินสำเร็จ!", en: "Top-up successful!" })}
+          {/* Topup Success/Error Banner */}
+          {topupMsg && (
+            <div className={`rounded-xl px-4 py-3 mb-6 ${topupMsg.type === "success" ? "bg-green-500/20 border border-green-500 text-green-400" : "bg-red-500/20 border border-red-500 text-red-400"}`}>
+              {topupMsg.text}
             </div>
           )}
 

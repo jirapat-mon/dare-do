@@ -13,6 +13,7 @@ model User {
   name                 String?
   role                 String    @default("user") // user, admin
   avatarUrl            String?   // base64 or URL of profile picture
+  bannerUrl            String?   // base64 or URL of profile banner
   avatarFrame          String    @default("default") // frame key
   lifetimePoints       Int       @default(0) // total points earned (never decreases, used for rank)
   province             String?   // Thai province code e.g. "BKK", "CNX"

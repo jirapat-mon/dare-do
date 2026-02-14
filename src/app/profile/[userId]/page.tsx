@@ -14,6 +14,7 @@ interface PublicProfile {
   id: string;
   name: string | null;
   avatarUrl: string | null;
+  bannerUrl: string | null;
   avatarFrame: string;
   lifetimePoints: number;
   province: string | null;
@@ -62,13 +63,13 @@ export default function PublicProfilePage({
       const res = await fetch(`/api/profile/${userId}`);
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "User not found");
+        setError(data.error || t({ th: "ไม่พบผู้ใช้", en: "User not found" }));
         return;
       }
       const data = await res.json();
       setProfile(data.user);
     } catch {
-      setError("Failed to load profile");
+      setError(t({ th: "ไม่สามารถโหลดโปรไฟล์ได้", en: "Failed to load profile" }));
     } finally {
       setLoading(false);
     }
@@ -81,33 +82,26 @@ export default function PublicProfilePage({
       const data = await res.json();
 
       // Check accepted friends
+      // API returns { friendshipId, id, name, email, ... }
       const accepted = (data.friends || []).find(
-        (f: { friendId?: string; userId?: string }) =>
-          f.friendId === userId || f.userId === userId
+        (f: { id: string }) => f.id === userId
       );
       if (accepted) {
-        setFriendStatus({ status: "accepted", friendshipId: accepted.id });
+        setFriendStatus({ status: "accepted", friendshipId: accepted.friendshipId });
         return;
       }
 
-      // Check pending sent
+      // Check pending requests
       const pendingRes = await fetch("/api/friends/pending");
       if (!pendingRes.ok) return;
       const pendingData = await pendingRes.json();
 
-      const sentPending = (pendingData.sent || []).find(
-        (f: { friendId: string }) => f.friendId === userId
-      );
-      if (sentPending) {
-        setFriendStatus({ status: "pending_sent", friendshipId: sentPending.id });
-        return;
-      }
-
-      const receivedPending = (pendingData.received || []).find(
-        (f: { userId: string }) => f.userId === userId
+      // API returns { friendshipId, user: { id, name, email, ... }, createdAt }
+      const receivedPending = (pendingData.requests || []).find(
+        (f: { user: { id: string } }) => f.user.id === userId
       );
       if (receivedPending) {
-        setFriendStatus({ status: "pending_received", friendshipId: receivedPending.id });
+        setFriendStatus({ status: "pending_received", friendshipId: receivedPending.friendshipId });
         return;
       }
     } catch {
@@ -132,11 +126,11 @@ export default function PublicProfilePage({
         if (res.status === 409) {
           checkFriendship();
         } else {
-          alert(data.error || "Failed");
+          alert(data.error || t({ th: "ล้มเหลว", en: "Failed" }));
         }
       }
     } catch {
-      alert("Failed to send friend request");
+      alert(t({ th: "ไม่สามารถส่งคำขอเป็นเพื่อนได้", en: "Failed to send friend request" }));
     } finally {
       setFriendLoading(false);
     }
@@ -155,7 +149,7 @@ export default function PublicProfilePage({
         setFriendStatus({ ...friendStatus, status: "accepted" });
       }
     } catch {
-      alert("Failed");
+      alert(t({ th: "ล้มเหลว", en: "Failed" }));
     } finally {
       setFriendLoading(false);
     }
@@ -180,7 +174,7 @@ export default function PublicProfilePage({
       <div className="min-h-screen bg-[#0A0A0A] text-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading...</p>
+          <p className="text-gray-400">{t({ th: "กำลังโหลด...", en: "Loading..." })}</p>
         </div>
       </div>
     );
@@ -223,76 +217,95 @@ export default function PublicProfilePage({
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white">
       <div className="max-w-2xl mx-auto px-4 py-8">
-        {/* Profile Card */}
-        <div className="bg-gradient-to-br from-[#1a1a2e] to-[#16213e] border border-[#1A1A1A] rounded-2xl p-6 mb-6 text-center">
-          {/* Avatar */}
-          <div className="flex justify-center mb-4">
-            <Avatar
-              avatarUrl={profile.avatarUrl}
-              name={profile.name}
-              frameKey={profile.avatarFrame}
-              size="xl"
-              showFrame={true}
-            />
+        {/* Profile Card with Banner */}
+        <div className="relative bg-[#111111] border border-[#1A1A1A] rounded-2xl mb-6 overflow-hidden">
+
+          {/* Banner */}
+          <div className="relative w-full h-[150px] sm:h-[200px]">
+            {profile.bannerUrl ? (
+              <img
+                src={profile.bannerUrl}
+                alt="Profile banner"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-[#1a1a2e] to-[#16213e]" />
+            )}
           </div>
 
-          {/* Name & Rank */}
-          <h1 className="text-2xl font-bold mb-1">
-            {profile.name || t({ th: "ผู้ใช้", en: "User" })}
-          </h1>
-          <div className="flex justify-center mb-3">
-            <RankBadge lifetimePoints={profile.lifetimePoints} size="md" />
-          </div>
-
-          {/* Province */}
-          {profile.province && (
-            <p className="text-sm text-gray-400 mb-3">
-              {getProvinceName(profile.province)}
-            </p>
-          )}
-
-          {/* Member since */}
-          <p className="text-xs text-gray-500 mb-4">
-            {t({ th: "สมาชิกตั้งแต่", en: "Member since" })}: {formatDate(profile.createdAt)}
-          </p>
-
-          {/* Friend Action Button */}
-          {isLoggedIn && !isOwnProfile && (
-            <div className="mt-4">
-              {friendStatus.status === "none" && (
-                <button
-                  onClick={handleAddFriend}
-                  disabled={friendLoading}
-                  className="px-6 py-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-medium transition disabled:opacity-50"
-                >
-                  {friendLoading
-                    ? "..."
-                    : t({ th: "เพิ่มเพื่อน", en: "Add Friend" })}
-                </button>
-              )}
-              {friendStatus.status === "pending_sent" && (
-                <span className="px-6 py-2 rounded-full bg-[#1A1A1A] text-gray-400 font-medium">
-                  {t({ th: "ส่งคำขอแล้ว", en: "Request Sent" })}
-                </span>
-              )}
-              {friendStatus.status === "pending_received" && (
-                <button
-                  onClick={handleAcceptFriend}
-                  disabled={friendLoading}
-                  className="px-6 py-2 rounded-full bg-green-600 hover:bg-green-700 text-white font-medium transition disabled:opacity-50"
-                >
-                  {friendLoading
-                    ? "..."
-                    : t({ th: "ตอบรับเป็นเพื่อน", en: "Accept Friend Request" })}
-                </button>
-              )}
-              {friendStatus.status === "accepted" && (
-                <span className="px-6 py-2 rounded-full bg-green-500/20 text-green-400 font-medium">
-                  {t({ th: "เป็นเพื่อนแล้ว", en: "Friends" })}
-                </span>
-              )}
+          {/* Avatar + Info section below banner */}
+          <div className="relative px-6 pb-6 text-center">
+            {/* Avatar overlapping banner */}
+            <div className="flex justify-center -mt-12 sm:-mt-14 mb-4">
+              <div className="rounded-full border-4 border-[#111111] bg-[#111111]">
+                <Avatar
+                  avatarUrl={profile.avatarUrl}
+                  name={profile.name}
+                  frameKey={profile.avatarFrame}
+                  size="xl"
+                  showFrame={true}
+                />
+              </div>
             </div>
-          )}
+
+            {/* Name & Rank */}
+            <h1 className="text-2xl font-bold mb-1">
+              {profile.name || t({ th: "ผู้ใช้", en: "User" })}
+            </h1>
+            <div className="flex justify-center mb-3">
+              <RankBadge lifetimePoints={profile.lifetimePoints} size="md" />
+            </div>
+
+            {/* Province */}
+            {profile.province && (
+              <p className="text-sm text-gray-400 mb-3">
+                {getProvinceName(profile.province)}
+              </p>
+            )}
+
+            {/* Member since */}
+            <p className="text-xs text-gray-500 mb-4">
+              {t({ th: "สมาชิกตั้งแต่", en: "Member since" })}: {formatDate(profile.createdAt)}
+            </p>
+
+            {/* Friend Action Button */}
+            {isLoggedIn && !isOwnProfile && (
+              <div className="mt-4">
+                {friendStatus.status === "none" && (
+                  <button
+                    onClick={handleAddFriend}
+                    disabled={friendLoading}
+                    className="px-6 py-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-medium transition disabled:opacity-50"
+                  >
+                    {friendLoading
+                      ? "..."
+                      : t({ th: "เพิ่มเพื่อน", en: "Add Friend" })}
+                  </button>
+                )}
+                {friendStatus.status === "pending_sent" && (
+                  <span className="px-6 py-2 rounded-full bg-[#1A1A1A] text-gray-400 font-medium">
+                    {t({ th: "ส่งคำขอแล้ว", en: "Request Sent" })}
+                  </span>
+                )}
+                {friendStatus.status === "pending_received" && (
+                  <button
+                    onClick={handleAcceptFriend}
+                    disabled={friendLoading}
+                    className="px-6 py-2 rounded-full bg-green-600 hover:bg-green-700 text-white font-medium transition disabled:opacity-50"
+                  >
+                    {friendLoading
+                      ? "..."
+                      : t({ th: "ตอบรับเป็นเพื่อน", en: "Accept Friend Request" })}
+                  </button>
+                )}
+                {friendStatus.status === "accepted" && (
+                  <span className="px-6 py-2 rounded-full bg-green-500/20 text-green-400 font-medium">
+                    {t({ th: "เป็นเพื่อนแล้ว", en: "Friends" })}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Stats Grid */}

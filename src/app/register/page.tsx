@@ -24,7 +24,7 @@ export default function RegisterPage() {
 
     // Validate passwords match
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(t({ th: "รหัสผ่านไม่ตรงกัน", en: "Passwords do not match" }));
       return;
     }
 
@@ -37,7 +37,7 @@ export default function RegisterPage() {
     if (result.success) {
       router.push("/dashboard");
     } else {
-      setError(result.error || "Registration failed");
+      setError(result.error || t({ th: "การสมัครสมาชิกล้มเหลว", en: "Registration failed" }));
     }
   };
 
@@ -46,7 +46,7 @@ export default function RegisterPage() {
       window.location.href = "/api/auth/google";
       return;
     }
-    alert(`Social login with ${provider} is not yet implemented`);
+    alert(t({ th: `การเข้าสู่ระบบด้วย ${provider} ยังไม่พร้อมใช้งาน`, en: `Social login with ${provider} is not yet implemented` }));
   };
 
   return (
@@ -82,13 +82,13 @@ export default function RegisterPage() {
 
           <div>
             <label className="block text-sm text-gray-400 mb-2">
-              Name (optional)
+              {t({ th: "ชื่อ (ไม่จำเป็น)", en: "Name (optional)" })}
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Your name"
+              placeholder={t({ th: "ชื่อของคุณ", en: "Your name" })}
               className="w-full bg-[#1A1A1A] border border-[#333] text-white rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500 transition"
               disabled={loading}
             />
@@ -144,7 +144,7 @@ export default function RegisterPage() {
             disabled={loading}
             className="w-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold py-3 rounded-full transition-all mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Creating account..." : t("auth.registerButton")}
+            {loading ? t({ th: "กำลังสร้างบัญชี...", en: "Creating account..." }) : t("auth.registerButton")}
           </button>
         </form>
 

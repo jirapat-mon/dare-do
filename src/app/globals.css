@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-orange-primary: #FF6B00;
   --color-orange-light: #FF8C00;
@@ -8,6 +10,73 @@
   --color-dark-card: #111111;
   --color-dark-border: #1A1A1A;
 }
+
+/* ========= Theme CSS Variables ========= */
+
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f9f9f9;
+  --border-primary: #e5e5e5;
+  --text-primary: #111111;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+}
+
+.dark {
+  --bg-primary: #0A0A0A;
+  --bg-secondary: #111111;
+  --bg-card: #111111;
+  --bg-card-hover: #1A1A1A;
+  --border-primary: #1A1A1A;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --text-muted: #666666;
+}
+
+/* ========= Utility Classes ========= */
+
+.bg-app {
+  background-color: var(--bg-primary);
+}
+
+.bg-app-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.bg-card {
+  background-color: var(--bg-card);
+}
+
+.bg-card-hover {
+  background-color: var(--bg-card-hover);
+}
+
+.text-app {
+  color: var(--text-primary);
+}
+
+.text-app-secondary {
+  color: var(--text-secondary);
+}
+
+.text-app-muted {
+  color: var(--text-muted);
+}
+
+.border-app {
+  border-color: var(--border-primary);
+}
+
+/* ========= Theme Transition ========= */
+
+html.dark,
+html.light {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ========= Animations ========= */
 
 @keyframes glow-pulse {
   0%, 100% {

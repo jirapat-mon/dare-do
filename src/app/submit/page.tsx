@@ -211,10 +211,10 @@ export default function SubmitEvidencePage() {
         }, 2000);
       } else {
         const data = await res.json();
-        setError(data.error || "Failed to submit");
+        setError(data.error || t({ th: "ส่งหลักฐานไม่สำเร็จ", en: "Failed to submit" }));
       }
     } catch (err) {
-      setError("Failed to submit. Please try again.");
+      setError(t({ th: "ส่งหลักฐานไม่สำเร็จ กรุณาลองใหม่", en: "Failed to submit. Please try again." }));
       console.error(err);
     } finally {
       setLoading(false);

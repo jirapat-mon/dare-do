@@ -152,7 +152,7 @@ export default function CreateContractPage() {
             })
           );
         } else {
-          setError(data.error || "Failed to create contract");
+          setError(data.error || t({ th: "สร้างสัญญาไม่สำเร็จ", en: "Failed to create contract" }));
         }
         return;
       }

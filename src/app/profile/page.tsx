@@ -72,15 +72,21 @@ export default function ProfilePage() {
   const [activeCategory, setActiveCategory] = useState<BadgeCategory>("all");
   const [totalSubmissions, setTotalSubmissions] = useState(0);
 
-  // Avatar & Frame state
+  // Avatar, Banner & Frame state
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [currentFrame, setCurrentFrame] = useState("default");
   const [framesData, setFramesData] = useState<FramesResponse | null>(null);
   const [previewFrame, setPreviewFrame] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [bannerUploading, setBannerUploading] = useState(false);
   const [frameAction, setFrameAction] = useState<string | null>(null);
   const [frameTab, setFrameTab] = useState<"free" | "premium">("free");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  // Edit mode
+  const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -111,11 +117,12 @@ export default function ProfilePage() {
         setCurrentFrame(data.currentFrame);
       }
 
-      // Get avatar from user profile
+      // Get avatar + banner from user profile
       const meRes = await fetch("/api/auth/me");
       if (meRes.ok) {
         const meData = await meRes.json();
         setAvatarUrl(meData.user.avatarUrl || null);
+        setBannerUrl(meData.user.bannerUrl || null);
         if (meData.user.avatarFrame) {
           setCurrentFrame(meData.user.avatarFrame);
         }
@@ -137,21 +144,22 @@ export default function ProfilePage() {
     }
   };
 
+  // Avatar upload
   const handleAvatarClick = () => {
-    fileInputRef.current?.click();
+    if (editMode) {
+      fileInputRef.current?.click();
+    }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       alert(t({ th: "รูปภาพใหญ่เกิน 2MB", en: "Image exceeds 2MB limit" }));
       return;
     }
 
-    // Validate type
     if (!file.type.startsWith("image/")) {
       alert(t({ th: "กรุณาเลือกไฟล์รูปภาพ", en: "Please select an image file" }));
       return;
@@ -172,14 +180,14 @@ export default function ProfilePage() {
           setAvatarUrl(base64);
         } else {
           const data = await res.json();
-          alert(data.error || "Upload failed");
+          alert(data.error || t({ th: "อัปโหลดล้มเหลว", en: "Upload failed" }));
         }
         setUploading(false);
       };
       reader.readAsDataURL(file);
     } catch {
       setUploading(false);
-      alert("Upload failed");
+      alert(t({ th: "อัปโหลดล้มเหลว", en: "Upload failed" }));
     }
   };
 
@@ -191,12 +199,74 @@ export default function ProfilePage() {
         setAvatarUrl(null);
       }
     } catch {
-      alert("Failed to remove avatar");
+      alert(t({ th: "ไม่สามารถลบรูปโปรไฟล์ได้", en: "Failed to remove avatar" }));
     } finally {
       setUploading(false);
     }
   };
 
+  // Banner upload
+  const handleBannerClick = () => {
+    if (editMode) {
+      bannerInputRef.current?.click();
+    }
+  };
+
+  const handleBannerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert(t({ th: "รูปภาพใหญ่เกิน 2MB", en: "Banner image exceeds 2MB limit" }));
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      alert(t({ th: "กรุณาเลือกไฟล์รูปภาพ", en: "Please select an image file" }));
+      return;
+    }
+
+    setBannerUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const base64 = event.target?.result as string;
+        const res = await fetch("/api/profile/avatar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ bannerUrl: base64 }),
+        });
+
+        if (res.ok) {
+          setBannerUrl(base64);
+        } else {
+          const data = await res.json();
+          alert(data.error || t({ th: "อัปโหลดล้มเหลว", en: "Upload failed" }));
+        }
+        setBannerUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      setBannerUploading(false);
+      alert(t({ th: "อัปโหลดล้มเหลว", en: "Upload failed" }));
+    }
+  };
+
+  const handleRemoveBanner = async () => {
+    setBannerUploading(true);
+    try {
+      const res = await fetch("/api/profile/avatar?field=banner", { method: "DELETE" });
+      if (res.ok) {
+        setBannerUrl(null);
+      }
+    } catch {
+      alert(t({ th: "ไม่สามารถลบแบนเนอร์ได้", en: "Failed to remove banner" }));
+    } finally {
+      setBannerUploading(false);
+    }
+  };
+
+  // Frame actions
   const handleFrameAction = async (frameKey: string, action: "equip" | "buy") => {
     setFrameAction(frameKey);
     try {
@@ -222,10 +292,10 @@ export default function ProfilePage() {
         }
       } else {
         const data = await res.json();
-        alert(data.error || "Failed");
+        alert(data.error || t({ th: "ล้มเหลว", en: "Failed" }));
       }
     } catch {
-      alert("Failed");
+      alert(t({ th: "ล้มเหลว", en: "Failed" }));
     } finally {
       setFrameAction(null);
     }
@@ -264,7 +334,7 @@ export default function ProfilePage() {
         <div className="min-h-screen bg-[#0A0A0A] text-white flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-            <p className="text-gray-400">Loading...</p>
+            <p className="text-gray-400">{t({ th: "กำลังโหลด...", en: "Loading..." })}</p>
           </div>
         </div>
       </AuthGuard>
@@ -276,16 +346,219 @@ export default function ProfilePage() {
       <div className="min-h-screen bg-[#0A0A0A] text-white">
         <div className="max-w-4xl mx-auto px-4 py-8">
 
-          {/* Profile Header */}
-          <div className="bg-gradient-to-br from-[#1a1a2e] to-[#16213e] border border-[#1A1A1A] rounded-2xl p-6 mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-5">
-              {/* Avatar with upload */}
-              <div className="relative group">
+          {/* Profile Card with Banner */}
+          <div className="relative bg-[#111111] border border-[#1A1A1A] rounded-2xl mb-6 overflow-hidden">
+
+            {/* Banner */}
+            <div
+              className={`relative w-full h-[150px] sm:h-[200px] ${editMode ? "cursor-pointer" : ""}`}
+              onClick={handleBannerClick}
+            >
+              {bannerUrl ? (
+                <img
+                  src={bannerUrl}
+                  alt="Profile banner"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-[#1a1a2e] to-[#16213e]" />
+              )}
+
+              {/* Banner edit overlay (only in edit mode) */}
+              {editMode && (
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-200">
+                  {bannerUploading ? (
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <span className="text-white text-xs font-medium">
+                        {t({ th: "เปลี่ยนแบนเนอร์", en: "Change Banner" })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Remove banner button (edit mode only) */}
+              {editMode && bannerUrl && (
                 <button
-                  onClick={handleAvatarClick}
-                  className="relative cursor-pointer"
-                  disabled={uploading}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveBanner();
+                  }}
+                  className="absolute top-3 left-3 bg-red-600/80 hover:bg-red-600 backdrop-blur-sm text-white rounded-full w-7 h-7 flex items-center justify-center text-xs transition"
+                  title={t({ th: "ลบแบนเนอร์", en: "Remove banner" })}
                 >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {/* Hidden banner file input */}
+            <input
+              ref={bannerInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleBannerChange}
+            />
+
+            {/* Pencil / Edit button — top right */}
+            <button
+              onClick={() => setEditMode(!editMode)}
+              className={`absolute top-3 right-3 z-10 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ${
+                editMode
+                  ? "bg-orange-500 text-white shadow-lg shadow-orange-500/30"
+                  : "bg-[#1A1A1A]/80 backdrop-blur-sm text-gray-300 hover:text-white hover:bg-[#1A1A1A]"
+              }`}
+              title={editMode
+                ? t({ th: "ปิดแก้ไข", en: "Close edit" })
+                : t({ th: "แก้ไขโปรไฟล์", en: "Edit profile" })
+              }
+            >
+              {editMode ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+              )}
+            </button>
+
+            {/* Avatar + Info section below banner */}
+            <div className="relative px-6 pb-6">
+              {/* Avatar overlapping banner */}
+              <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-12 sm:-mt-14">
+                <div className="relative group z-10">
+                  <button
+                    onClick={handleAvatarClick}
+                    className={`relative ${editMode ? "cursor-pointer" : "cursor-default"}`}
+                    disabled={uploading || !editMode}
+                  >
+                    <div className="rounded-full border-4 border-[#111111] bg-[#111111]">
+                      <Avatar
+                        avatarUrl={avatarUrl}
+                        name={user?.name}
+                        frameKey={displayFrame}
+                        size="xl"
+                        showFrame={true}
+                      />
+                    </div>
+                    {/* Camera overlay on avatar (edit mode only) */}
+                    {editMode && (
+                      <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                        {uploading ? (
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                        ) : (
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        )}
+                      </div>
+                    )}
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                  {/* Remove avatar button (edit mode only) */}
+                  {editMode && avatarUrl && (
+                    <button
+                      onClick={handleRemoveAvatar}
+                      className="absolute -bottom-1 -right-1 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transition z-20"
+                      title={t({ th: "ลบรูปโปรไฟล์", en: "Remove avatar" })}
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+
+                {/* Name + Rank */}
+                <div className="flex-1 min-w-0 sm:pb-1">
+                  <div className="flex items-center gap-3">
+                    <h1 className="text-2xl font-bold truncate">
+                      {user?.name || t({ th: "ผู้ใช้", en: "User" })}
+                    </h1>
+                    {stats && (
+                      <RankBadge lifetimePoints={stats.lifetimePoints} size="md" />
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-400 truncate">{user?.email}</p>
+                </div>
+              </div>
+
+              {/* Rank Progress */}
+              {stats && (
+                <div className="mt-5 space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-400">
+                      {t({ th: "คะแนนสะสม", en: "Lifetime Points" })}:{" "}
+                      <span className="text-white font-semibold">
+                        {stats.lifetimePoints.toLocaleString()} pts
+                      </span>
+                    </span>
+                    <span className="text-gray-400">
+                      {stats.nextRank
+                        ? t({
+                            th: `อีก ${(stats.nextRank.minPoints - stats.lifetimePoints).toLocaleString()} pts ถึง ${stats.nextRank.nameTh}`,
+                            en: `${(stats.nextRank.minPoints - stats.lifetimePoints).toLocaleString()} pts to ${stats.nextRank.nameEn}`,
+                          })
+                        : t({ th: "Rank สูงสุดแล้ว!", en: "Max Rank!" })}
+                    </span>
+                  </div>
+                  <div className="w-full bg-[#1A1A1A] rounded-full h-2.5 overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-orange-600 to-orange-400 h-full transition-all duration-500 rounded-full"
+                      style={{ width: `${stats.rankProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {t({ th: "สมาชิกตั้งแต่", en: "Member since" })}:{" "}
+                    {user?.id
+                      ? formatDate(new Date().toISOString())
+                      : "---"}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Edit Mode Panel — Avatar Frame Selector (slide-down) */}
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${
+              editMode ? "max-h-[2000px] opacity-100 mb-6" : "max-h-0 opacity-0"
+            }`}
+          >
+            <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">
+                  {t({ th: "กรอบโปรไฟล์", en: "Avatar Frames" })}
+                </h2>
+                <button
+                  onClick={() => setEditMode(false)}
+                  className="px-4 py-1.5 rounded-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium transition"
+                >
+                  {t({ th: "เสร็จสิ้น", en: "Done" })}
+                </button>
+              </div>
+
+              {/* Frame Preview */}
+              <div className="flex items-center justify-center mb-6">
+                <div className="text-center">
                   <Avatar
                     avatarUrl={avatarUrl}
                     name={user?.name}
@@ -293,202 +566,109 @@ export default function ProfilePage() {
                     size="xl"
                     showFrame={true}
                   />
-                  <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    {uploading ? (
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                    ) : (
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    )}
-                  </div>
+                  <p className="text-sm text-gray-400 mt-2">
+                    {t({ th: "ตัวอย่าง", en: "Preview" })}
+                  </p>
+                </div>
+              </div>
+
+              {/* Frame Category Tabs */}
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={() => setFrameTab("free")}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                    frameTab === "free"
+                      ? "bg-orange-500 text-white"
+                      : "bg-[#1A1A1A] text-gray-400 hover:text-white hover:bg-[#222]"
+                  }`}
+                >
+                  {t({ th: "ฟรี", en: "Free" })} ({framesData?.frames.filter(f => f.category === "free").length ?? 0})
                 </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-                {avatarUrl && (
-                  <button
-                    onClick={handleRemoveAvatar}
-                    className="absolute -bottom-1 -right-1 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transition"
-                    title={t({ th: "ลบรูปโปรไฟล์", en: "Remove avatar" })}
-                  >
-                    x
-                  </button>
-                )}
+                <button
+                  onClick={() => setFrameTab("premium")}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                    frameTab === "premium"
+                      ? "bg-orange-500 text-white"
+                      : "bg-[#1A1A1A] text-gray-400 hover:text-white hover:bg-[#222]"
+                  }`}
+                >
+                  {t({ th: "พรีเมียม", en: "Premium" })} ({framesData?.frames.filter(f => f.category === "premium").length ?? 0})
+                </button>
               </div>
 
-              <div className="flex-1 min-w-0">
-                <h1 className="text-2xl font-bold truncate">
-                  {user?.name || t({ th: "ผู้ใช้", en: "User" })}
-                </h1>
-                <p className="text-sm text-gray-400 truncate">{user?.email}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {t({ th: "คลิกที่รูปเพื่อเปลี่ยนรูปโปรไฟล์", en: "Click avatar to change profile picture" })}
-                </p>
-              </div>
-              {stats && (
-                <RankBadge lifetimePoints={stats.lifetimePoints} size="lg" />
+              {/* Current points */}
+              {frameTab === "premium" && stats && (
+                <div className="mb-4 text-sm text-gray-400">
+                  {t({ th: "Points ที่ใช้ได้:", en: "Available Points:" })}{" "}
+                  <span className="text-yellow-400 font-semibold">{stats.points.toLocaleString()} pts</span>
+                </div>
               )}
-            </div>
 
-            {/* Rank Progress */}
-            {stats && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">
-                    {t({ th: "คะแนนสะสม", en: "Lifetime Points" })}:{" "}
-                    <span className="text-white font-semibold">
-                      {stats.lifetimePoints.toLocaleString()} pts
-                    </span>
-                  </span>
-                  <span className="text-gray-400">
-                    {stats.nextRank
-                      ? t({
-                          th: `อีก ${(stats.nextRank.minPoints - stats.lifetimePoints).toLocaleString()} pts ถึง ${stats.nextRank.nameTh}`,
-                          en: `${(stats.nextRank.minPoints - stats.lifetimePoints).toLocaleString()} pts to ${stats.nextRank.nameEn}`,
-                        })
-                      : t({ th: "Rank สูงสุดแล้ว!", en: "Max Rank!" })}
-                  </span>
-                </div>
-                <div className="w-full bg-[#1A1A1A] rounded-full h-2.5 overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-orange-600 to-orange-400 h-full transition-all duration-500 rounded-full"
-                    style={{ width: `${stats.rankProgress}%` }}
-                  />
-                </div>
-                <p className="text-xs text-gray-500">
-                  {t({ th: "สมาชิกตั้งแต่", en: "Member since" })}:{" "}
-                  {user?.id
-                    ? formatDate(new Date().toISOString())
-                    : "---"}
-                </p>
-              </div>
-            )}
-          </div>
+              {/* Frame Grid */}
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                {filteredFrames.map((frame) => {
+                  const isEquipped = currentFrame === frame.key;
+                  const isPreviewing = previewFrame === frame.key;
 
-          {/* Avatar Frame Selector */}
-          <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6 mb-6">
-            <h2 className="text-xl font-bold mb-4">
-              {t({ th: "กรอบโปรไฟล์", en: "Avatar Frames" })}
-            </h2>
-
-            {/* Frame Preview */}
-            <div className="flex items-center justify-center mb-6">
-              <div className="text-center">
-                <Avatar
-                  avatarUrl={avatarUrl}
-                  name={user?.name}
-                  frameKey={displayFrame}
-                  size="xl"
-                  showFrame={true}
-                />
-                <p className="text-sm text-gray-400 mt-2">
-                  {t({ th: "ตัวอย่าง", en: "Preview" })}
-                </p>
-              </div>
-            </div>
-
-            {/* Frame Category Tabs */}
-            <div className="flex gap-2 mb-4">
-              <button
-                onClick={() => setFrameTab("free")}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                  frameTab === "free"
-                    ? "bg-orange-500 text-white"
-                    : "bg-[#1A1A1A] text-gray-400 hover:text-white hover:bg-[#222]"
-                }`}
-              >
-                {t({ th: "ฟรี", en: "Free" })} ({framesData?.frames.filter(f => f.category === "free").length ?? 0})
-              </button>
-              <button
-                onClick={() => setFrameTab("premium")}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                  frameTab === "premium"
-                    ? "bg-orange-500 text-white"
-                    : "bg-[#1A1A1A] text-gray-400 hover:text-white hover:bg-[#222]"
-                }`}
-              >
-                {t({ th: "พรีเมียม", en: "Premium" })} ({framesData?.frames.filter(f => f.category === "premium").length ?? 0})
-              </button>
-            </div>
-
-            {/* Current points */}
-            {frameTab === "premium" && stats && (
-              <div className="mb-4 text-sm text-gray-400">
-                {t({ th: "Points ที่ใช้ได้:", en: "Available Points:" })}{" "}
-                <span className="text-yellow-400 font-semibold">{stats.points.toLocaleString()} pts</span>
-              </div>
-            )}
-
-            {/* Frame Grid */}
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-              {filteredFrames.map((frame) => {
-                const isEquipped = currentFrame === frame.key;
-                const isPreviewing = previewFrame === frame.key;
-
-                return (
-                  <div
-                    key={frame.key}
-                    className={`relative rounded-xl p-3 text-center transition-all cursor-pointer ${
-                      isEquipped
-                        ? "bg-orange-500/10 border-2 border-orange-500"
-                        : isPreviewing
-                        ? "bg-blue-500/10 border-2 border-blue-500/50"
-                        : "bg-[#1A1A1A] border border-[#222] hover:border-[#444]"
-                    }`}
-                    onMouseEnter={() => setPreviewFrame(frame.key)}
-                    onMouseLeave={() => setPreviewFrame(null)}
-                  >
-                    {/* Mini avatar preview */}
-                    <div className="flex justify-center mb-2">
-                      <Avatar
-                        avatarUrl={avatarUrl}
-                        name={user?.name}
-                        frameKey={frame.key}
-                        size="md"
-                        showFrame={true}
-                      />
-                    </div>
-
-                    {/* Frame name */}
-                    <div className="text-xs font-medium text-white truncate">
-                      {t({ th: frame.nameTh, en: frame.nameEn })}
-                    </div>
-
-                    {/* Cost or status */}
-                    {isEquipped ? (
-                      <div className="text-xs text-orange-400 mt-1">
-                        {t({ th: "ใช้อยู่", en: "Equipped" })}
+                  return (
+                    <div
+                      key={frame.key}
+                      className={`relative rounded-xl p-3 text-center transition-all cursor-pointer ${
+                        isEquipped
+                          ? "bg-orange-500/10 border-2 border-orange-500"
+                          : isPreviewing
+                          ? "bg-blue-500/10 border-2 border-blue-500/50"
+                          : "bg-[#1A1A1A] border border-[#222] hover:border-[#444]"
+                      }`}
+                      onMouseEnter={() => setPreviewFrame(frame.key)}
+                      onMouseLeave={() => setPreviewFrame(null)}
+                    >
+                      {/* Mini avatar preview */}
+                      <div className="flex justify-center mb-2">
+                        <Avatar
+                          avatarUrl={avatarUrl}
+                          name={user?.name}
+                          frameKey={frame.key}
+                          size="md"
+                          showFrame={true}
+                        />
                       </div>
-                    ) : frame.owned ? (
-                      <button
-                        onClick={() => handleFrameAction(frame.key, "equip")}
-                        disabled={frameAction === frame.key}
-                        className="text-xs text-green-400 hover:text-green-300 mt-1 transition"
-                      >
-                        {frameAction === frame.key
-                          ? "..."
-                          : t({ th: "ใช้งาน", en: "Equip" })}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleFrameAction(frame.key, "buy")}
-                        disabled={frameAction === frame.key}
-                        className="text-xs text-yellow-400 hover:text-yellow-300 mt-1 transition"
-                      >
-                        {frameAction === frame.key
-                          ? "..."
-                          : `${frame.pointsCost.toLocaleString()} pts`}
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
+
+                      {/* Frame name */}
+                      <div className="text-xs font-medium text-white truncate">
+                        {t({ th: frame.nameTh, en: frame.nameEn })}
+                      </div>
+
+                      {/* Cost or status */}
+                      {isEquipped ? (
+                        <div className="text-xs text-orange-400 mt-1">
+                          {t({ th: "ใช้อยู่", en: "Equipped" })}
+                        </div>
+                      ) : frame.owned ? (
+                        <button
+                          onClick={() => handleFrameAction(frame.key, "equip")}
+                          disabled={frameAction === frame.key}
+                          className="text-xs text-green-400 hover:text-green-300 mt-1 transition"
+                        >
+                          {frameAction === frame.key
+                            ? "..."
+                            : t({ th: "ใช้งาน", en: "Equip" })}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleFrameAction(frame.key, "buy")}
+                          disabled={frameAction === frame.key}
+                          className="text-xs text-yellow-400 hover:text-yellow-300 mt-1 transition"
+                        >
+                          {frameAction === frame.key
+                            ? "..."
+                            : `${frame.pointsCost.toLocaleString()} pts`}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 

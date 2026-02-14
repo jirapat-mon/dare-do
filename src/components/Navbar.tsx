@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import LanguageToggle from "./LanguageToggle";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
   const { t } = useI18n();
@@ -19,7 +20,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-[#1A1A1A]">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-primary)]/80 backdrop-blur-md border-b border-app">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="text-xl font-black">
@@ -32,43 +33,49 @@ export default function Navbar() {
             <>
               <Link
                 href="/dashboard"
-                className="text-gray-400 hover:text-white transition text-sm"
+                className="text-app-secondary hover:text-app transition text-sm"
               >
                 {t("nav.dashboard")}
               </Link>
               <Link
                 href="/create"
-                className="text-gray-400 hover:text-white transition text-sm"
+                className="text-app-secondary hover:text-app transition text-sm"
               >
                 {t("nav.create")}
               </Link>
               <Link
                 href="/wallet"
-                className="text-gray-400 hover:text-white transition text-sm"
+                className="text-app-secondary hover:text-app transition text-sm"
               >
                 {t("nav.wallet")}
               </Link>
               <Link
                 href="/leaderboard"
-                className="text-gray-400 hover:text-white transition text-sm"
+                className="text-app-secondary hover:text-app transition text-sm"
               >
                 {t("nav.leaderboard")}
               </Link>
               <Link
+                href="/announcements"
+                className="text-app-secondary hover:text-app transition text-sm"
+              >
+                {t({ th: "ประกาศ", en: "Announcements" })}
+              </Link>
+              <Link
                 href="/profile"
-                className="text-gray-400 hover:text-white transition text-sm"
+                className="text-app-secondary hover:text-app transition text-sm"
               >
                 {t("nav.profile")}
               </Link>
               <Link
                 href="/friends"
-                className="text-gray-400 hover:text-white transition text-sm"
+                className="text-app-secondary hover:text-app transition text-sm"
               >
                 {t("nav.friends")}
               </Link>
               <Link
                 href="/province"
-                className="text-gray-400 hover:text-white transition text-sm"
+                className="text-app-secondary hover:text-app transition text-sm"
               >
                 {t("nav.province")}
               </Link>
@@ -82,15 +89,16 @@ export default function Navbar() {
               )}
             </>
           )}
+          <ThemeToggle />
           <LanguageToggle />
           {isLoggedIn ? (
             <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-400">
+              <span className="text-sm text-app-secondary">
                 {user?.name || user?.email}
               </span>
               <button
                 onClick={handleLogout}
-                className="text-sm px-4 py-2 rounded-full border border-[#333] text-gray-400 hover:text-white hover:border-red-500 transition"
+                className="text-sm px-4 py-2 rounded-full border border-app text-app-secondary hover:text-app hover:border-red-500 transition"
               >
                 {t("nav.logout")}
               </button>
@@ -107,10 +115,11 @@ export default function Navbar() {
 
         {/* Mobile Menu Button */}
         <div className="flex md:hidden items-center gap-3">
+          <ThemeToggle />
           <LanguageToggle />
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="text-white p-2"
+            className="text-app p-2"
             aria-label="Toggle menu"
           >
             <svg
@@ -141,58 +150,65 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-black/95 border-b border-[#1A1A1A] px-4 py-4 space-y-3">
+        <div className="md:hidden bg-[var(--bg-primary)]/95 border-b border-app px-4 py-4 space-y-3">
           {isLoggedIn ? (
             <>
-              <p className="text-sm text-gray-500 py-1">
+              <p className="text-sm text-app-muted py-1">
                 {user?.name || user?.email}
               </p>
               <Link
                 href="/dashboard"
                 onClick={() => setIsMenuOpen(false)}
-                className="block text-gray-400 hover:text-white transition py-2"
+                className="block text-app-secondary hover:text-app transition py-2"
               >
                 {t("nav.dashboard")}
               </Link>
               <Link
                 href="/create"
                 onClick={() => setIsMenuOpen(false)}
-                className="block text-gray-400 hover:text-white transition py-2"
+                className="block text-app-secondary hover:text-app transition py-2"
               >
                 {t("nav.create")}
               </Link>
               <Link
                 href="/wallet"
                 onClick={() => setIsMenuOpen(false)}
-                className="block text-gray-400 hover:text-white transition py-2"
+                className="block text-app-secondary hover:text-app transition py-2"
               >
                 {t("nav.wallet")}
               </Link>
               <Link
                 href="/leaderboard"
                 onClick={() => setIsMenuOpen(false)}
-                className="block text-gray-400 hover:text-white transition py-2"
+                className="block text-app-secondary hover:text-app transition py-2"
               >
                 {t("nav.leaderboard")}
               </Link>
               <Link
+                href="/announcements"
+                onClick={() => setIsMenuOpen(false)}
+                className="block text-app-secondary hover:text-app transition py-2"
+              >
+                {t({ th: "ประกาศ", en: "Announcements" })}
+              </Link>
+              <Link
                 href="/profile"
                 onClick={() => setIsMenuOpen(false)}
-                className="block text-gray-400 hover:text-white transition py-2"
+                className="block text-app-secondary hover:text-app transition py-2"
               >
                 {t("nav.profile")}
               </Link>
               <Link
                 href="/friends"
                 onClick={() => setIsMenuOpen(false)}
-                className="block text-gray-400 hover:text-white transition py-2"
+                className="block text-app-secondary hover:text-app transition py-2"
               >
                 {t("nav.friends")}
               </Link>
               <Link
                 href="/province"
                 onClick={() => setIsMenuOpen(false)}
-                className="block text-gray-400 hover:text-white transition py-2"
+                className="block text-app-secondary hover:text-app transition py-2"
               >
                 {t("nav.province")}
               </Link>
