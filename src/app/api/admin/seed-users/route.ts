@@ -3,20 +3,20 @@ import { requireAdmin } from "@/lib/jwt";
 import { prisma } from "@/lib/db";
 import { PROVINCES } from "@/lib/provinces";
 
-// Thai first names
-const FIRST_NAMES = [
-  "สมชาย", "สมหญิง", "สุดา", "วิชัย", "ประภา", "อนุชา", "พิมพ์", "ธนา",
-  "กัลยา", "ชนิดา", "ปิยะ", "นันทนา", "วรรณา", "สุรชัย", "จิราภรณ์", "พงศ์",
-  "รัตนา", "มานะ", "ศิริ", "บุญมี", "ขวัญ", "แก้ว", "ทอง", "เพชร",
-  "ดาว", "เดือน", "ฟ้า", "น้ำ", "ลม", "ไฟ", "ใจ", "รัก",
-  "นิด", "หน่อย", "เล็ก", "ใหญ่", "เก่ง", "ดี", "งาม", "สวย",
-];
-
-const LAST_NAMES = [
-  "สุขสันต์", "ใจดี", "มั่งมี", "ศรีสุข", "แสงจันทร์", "พลอยงาม",
-  "ทองดี", "เจริญ", "สิริมงคล", "วงศ์ประเสริฐ", "บุญส่ง", "สว่าง",
-  "อารีย์", "เกษม", "รุ่งเรือง", "พูนสุข", "แก้วมณี", "ศรีทอง",
-  "ชัยชนะ", "วัฒนา",
+// Instagram-style display names with Thai flair
+const DISPLAY_NAMES = [
+  "ปังมาก.exe", "นุ่น_fitlife", "เจ_ชิลล์ๆ", "มิ้นท์.run", "บีม_grind",
+  "แพร_healthy", "ก้อง.daily", "ไอซ์_noexcuse", "ฟ้า.warrior", "เอม_savage",
+  "นัท.hustle", "ออม_glow", "พีท.beast", "มุก_shine", "ต้น.vibes",
+  "แจน_momentum", "โอ๊ต.level.up", "ปิง_focus", "เมย์.strong", "กิ๊ก_active",
+  "บอส.unstop", "พลอย_fire", "เจมส์.dare", "แนน_grinder", "ท็อป.alpha",
+  "มายด์_zen", "กัน.nonstop", "ปอ_champ", "เฟิร์น.rise", "แบงค์_legend",
+  "หมิว_spark", "เต้.commit", "เบล_power", "ไนท์.owl", "มิว_earlybird",
+  "แอน.streak", "บิ๊ก_iron", "หนึ่ง.goal", "เนย_discipline", "ตั้ม.prove",
+  "เกม_winner", "ใหม่.fresh", "ปลา_swim", "ชมพู.grit", "ดิว_steady",
+  "ปู_crusher", "แม็ก.max", "ลูกตาล_sweet", "จ๊ะจ๋า.fun", "เค_machine",
+  "ว่าน.วิ่ง", "หนุ่ย_push", "กุ๊ก.cook", "ส้ม_juicy", "โม_flow",
+  "จี้.เจ๋ง", "พี่เบิร์ด.fly", "น้อง.กล้า", "แพท_fit", "จีน.strong.af",
 ];
 
 const GOALS = [
@@ -51,10 +51,9 @@ export async function POST() {
     const createdUsers: string[] = [];
 
     for (let i = 0; i < 180; i++) {
-      const firstName = randomItem(FIRST_NAMES);
-      const lastName = randomItem(LAST_NAMES);
-      const name = `${firstName} ${lastName}`;
-      const email = `mock_${i + 1}_${Date.now()}@daredo.test`;
+      const baseName = DISPLAY_NAMES[i % DISPLAY_NAMES.length];
+      const name = i < DISPLAY_NAMES.length ? baseName : `${baseName}${randomBetween(1, 99)}`;
+      const email = `${name.replace(/[^a-zA-Z0-9]/g, "").toLowerCase() || `user${i}`}_${i}@daredo.app`;
 
       // Weighted tier selection
       const roll = Math.random() * 100;
