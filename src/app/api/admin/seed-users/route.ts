@@ -26,6 +26,13 @@ const GOALS = [
   "ไม่เล่นมือถือก่อนนอน", "ทำอาหารเอง", "เดิน 10,000 ก้าว",
 ];
 
+const SUBMISSION_NOTES = [
+  "ทำเสร็จแล้ววันนี้!", "วันนี้ทำได้ดีมาก", "ไม่ยอมแพ้", "สู้ๆ ทุกวัน",
+  "ครบแล้ววันนี้", "เหนื่อยแต่สำเร็จ", "วันนี้ทำได้!", "ง่ายมาก",
+  "ยากนิดหน่อยแต่ผ่าน", "ทำจนเป็นนิสัยแล้ว", "อีกวันที่สำเร็จ",
+  "ทำครบตามเป้า", null, null, null,
+];
+
 function randomItem<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
@@ -102,18 +109,19 @@ export async function POST() {
         },
       });
 
-      // Create 1-3 contracts
+      // Create 1-3 contracts with submissions
       const numContracts = randomBetween(1, 3);
       for (let j = 0; j < numContracts; j++) {
         const duration = randomItem([7, 14, 30, 60]);
         const daysCompleted = randomBetween(0, duration);
         const status = daysCompleted >= duration ? "success" : j === 0 ? "active" : randomItem(["active", "success", "failed"] as const);
         const contractStakes = tier === "free" ? 0 : randomBetween(0, 500);
+        const goal = randomItem(GOALS);
 
-        await prisma.contract.create({
+        const contract = await prisma.contract.create({
           data: {
             userId: user.id,
-            goal: randomItem(GOALS),
+            goal,
             duration,
             deadline: `${randomBetween(6, 23).toString().padStart(2, "0")}:00`,
             stakes: contractStakes,
@@ -121,6 +129,22 @@ export async function POST() {
             daysCompleted: Math.min(daysCompleted, duration),
           },
         });
+
+        // Create submissions for completed days (realistic activity)
+        const numSubmissions = Math.min(daysCompleted, randomBetween(1, Math.min(daysCompleted, 10)));
+        for (let s = 0; s < numSubmissions; s++) {
+          const daysAgo = randomBetween(0, Math.min(daysCompleted, 30));
+          const submissionStatus = randomItem(["approved", "approved", "approved", "pending"] as const);
+          await prisma.submission.create({
+            data: {
+              contractId: contract.id,
+              imageData: `data:image/svg+xml;base64,${Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="#${Math.floor(Math.random()*16777215).toString(16).padStart(6,"0")}" width="100" height="100"/><text x="50" y="55" text-anchor="middle" fill="white" font-size="12">${goal.slice(0, 8)}</text></svg>`).toString("base64")}`,
+              note: randomItem(SUBMISSION_NOTES),
+              status: submissionStatus,
+              createdAt: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000 - randomBetween(0, 12) * 60 * 60 * 1000),
+            },
+          });
+        }
       }
 
       createdUsers.push(user.id);

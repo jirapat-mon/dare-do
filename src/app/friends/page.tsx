@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import AuthGuard from "@/components/AuthGuard";
+import Link from "next/link";
 
 interface Friend {
   id: string;
@@ -378,7 +379,7 @@ export default function FriendsPage() {
                         key={friend.id}
                         className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 hover:border-[#333] transition"
                       >
-                        <div className="flex flex-col items-center text-center">
+                        <Link href={`/profile/${friend.id}`} className="flex flex-col items-center text-center">
                           <div className="w-12 h-12 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center font-bold text-lg mb-2">
                             {friend.name?.charAt(0)?.toUpperCase() ||
                               friend.email?.charAt(0)?.toUpperCase() ||
@@ -395,18 +396,18 @@ export default function FriendsPage() {
                               {friend.province}
                             </p>
                           )}
-                          <button
-                            onClick={() =>
-                              handleUnfriend(
-                                friend.friendshipId,
-                                friend.name || friend.email
-                              )
-                            }
-                            className="mt-3 text-xs text-gray-500 hover:text-red-400 transition px-3 py-1 rounded-full border border-[#1A1A1A] hover:border-red-500/50"
-                          >
-                            {t({ th: "ลบเพื่อน", en: "Unfriend" })}
-                          </button>
-                        </div>
+                        </Link>
+                        <button
+                          onClick={() =>
+                            handleUnfriend(
+                              friend.friendshipId,
+                              friend.name || friend.email
+                            )
+                          }
+                          className="mt-3 text-xs text-gray-500 hover:text-red-400 transition px-3 py-1 rounded-full border border-[#1A1A1A] hover:border-red-500/50"
+                        >
+                          {t({ th: "ลบเพื่อน", en: "Unfriend" })}
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -479,12 +480,12 @@ export default function FriendsPage() {
                         key={result.id}
                         className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4 flex items-center gap-3"
                       >
-                        <div className="w-12 h-12 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center font-bold text-lg flex-shrink-0">
+                        <Link href={`/profile/${result.id}`} className="w-12 h-12 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center font-bold text-lg flex-shrink-0">
                           {result.name?.charAt(0)?.toUpperCase() ||
                             result.email?.charAt(0)?.toUpperCase() ||
                             "?"}
-                        </div>
-                        <div className="flex-1 min-w-0">
+                        </Link>
+                        <Link href={`/profile/${result.id}`} className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-white truncate">
                             {result.name || result.email}
                             {isMe && (
@@ -500,7 +501,7 @@ export default function FriendsPage() {
                             {result.lifetimePoints.toLocaleString()} pts
                             {result.province && ` · ${result.province}`}
                           </p>
-                        </div>
+                        </Link>
                         <div className="flex-shrink-0">
                           {isMe ? null : result.isFriend ? (
                             <span className="text-xs text-green-400 bg-green-500/10 px-3 py-1.5 rounded-full">
@@ -565,7 +566,7 @@ export default function FriendsPage() {
                       key={req.friendshipId}
                       className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-4"
                     >
-                      <div className="flex items-center gap-3">
+                      <Link href={`/profile/${req.user.id}`} className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center font-bold text-lg flex-shrink-0">
                           {req.user.name?.charAt(0)?.toUpperCase() ||
                             req.user.email?.charAt(0)?.toUpperCase() ||
@@ -584,7 +585,7 @@ export default function FriendsPage() {
                             {relativeTime(req.createdAt, locale)}
                           </p>
                         </div>
-                      </div>
+                      </Link>
                       <div className="flex gap-2 mt-3 ml-15">
                         <button
                           onClick={() =>
