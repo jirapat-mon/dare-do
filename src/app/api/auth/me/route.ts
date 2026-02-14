@@ -22,6 +22,8 @@ export async function GET() {
         email: true,
         name: true,
         role: true,
+        avatarUrl: true,
+        avatarFrame: true,
         createdAt: true,
       },
     });
@@ -39,6 +41,8 @@ export async function GET() {
         email: user.email,
         name: user.name,
         role: user.role,
+        avatarUrl: user.avatarUrl,
+        avatarFrame: user.avatarFrame,
       },
     });
   } catch (error) {

@@ -12,6 +12,8 @@ model User {
   password             String
   name                 String?
   role                 String    @default("user") // user, admin
+  avatarUrl            String?   // base64 or URL of profile picture
+  avatarFrame          String    @default("default") // frame key
   lifetimePoints       Int       @default(0) // total points earned (never decreases, used for rank)
   province             String?   // Thai province code e.g. "BKK", "CNX"
   // Subscription
@@ -27,6 +29,7 @@ model User {
   badges               UserBadge[]
   friendshipsSent      Friendship[] @relation("FriendshipSent")
   friendshipsReceived  Friendship[] @relation("FriendshipReceived")
+  ownedFrames          UserOwnedFrame[]
 }
 
 model Wallet {
@@ -193,4 +196,14 @@ model WithdrawRequest {
   note        String?   // admin note
   createdAt   DateTime  @default(now())
   processedAt DateTime?
+}
+
+// User Owned Avatar Frames — purchased premium frames
+model UserOwnedFrame {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  frameKey String
+
+  @@unique([userId, frameKey])
 }

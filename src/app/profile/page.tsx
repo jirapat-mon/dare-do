@@ -5,8 +5,10 @@ import { useAuth } from "@/lib/auth";
 import AuthGuard from "@/components/AuthGuard";
 import RankBadge from "@/components/RankBadge";
 import StreakFire from "@/components/StreakFire";
-import { useEffect, useState } from "react";
+import Avatar from "@/components/Avatar";
+import { useEffect, useState, useRef } from "react";
 import type { RankDefinition, BadgeDefinition } from "@/lib/gamification";
+import type { AvatarFrame } from "@/lib/avatar-frames";
 
 type BadgeCategory = "all" | "streak" | "submission" | "contract" | "points" | "special";
 
@@ -35,6 +37,16 @@ interface BadgesResponse {
   totalCount: number;
 }
 
+interface FrameData extends AvatarFrame {
+  owned: boolean;
+  equipped: boolean;
+}
+
+interface FramesResponse {
+  frames: FrameData[];
+  currentFrame: string;
+}
+
 const CATEGORY_COLORS: Record<string, string> = {
   streak: "border-orange-500/60",
   submission: "border-green-500/60",
@@ -60,6 +72,16 @@ export default function ProfilePage() {
   const [activeCategory, setActiveCategory] = useState<BadgeCategory>("all");
   const [totalSubmissions, setTotalSubmissions] = useState(0);
 
+  // Avatar & Frame state
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [currentFrame, setCurrentFrame] = useState("default");
+  const [framesData, setFramesData] = useState<FramesResponse | null>(null);
+  const [previewFrame, setPreviewFrame] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [frameAction, setFrameAction] = useState<string | null>(null);
+  const [frameTab, setFrameTab] = useState<"free" | "premium">("free");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -67,9 +89,10 @@ export default function ProfilePage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [statsRes, badgesRes] = await Promise.all([
+      const [statsRes, badgesRes, framesRes] = await Promise.all([
         fetch("/api/gamification/stats"),
         fetch("/api/gamification/badges"),
+        fetch("/api/profile/frame"),
       ]);
 
       if (statsRes.ok) {
@@ -80,6 +103,22 @@ export default function ProfilePage() {
       if (badgesRes.ok) {
         const data = await badgesRes.json();
         setBadgesData(data);
+      }
+
+      if (framesRes.ok) {
+        const data: FramesResponse = await framesRes.json();
+        setFramesData(data);
+        setCurrentFrame(data.currentFrame);
+      }
+
+      // Get avatar from user profile
+      const meRes = await fetch("/api/auth/me");
+      if (meRes.ok) {
+        const meData = await meRes.json();
+        setAvatarUrl(meData.user.avatarUrl || null);
+        if (meData.user.avatarFrame) {
+          setCurrentFrame(meData.user.avatarFrame);
+        }
       }
 
       // Get total submissions count from wallet/transactions
@@ -95,6 +134,100 @@ export default function ProfilePage() {
       console.error("Error fetching profile data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate size (max 500KB)
+    if (file.size > 500 * 1024) {
+      alert(t({ th: "รูปภาพใหญ่เกิน 500KB", en: "Image exceeds 500KB limit" }));
+      return;
+    }
+
+    // Validate type
+    if (!file.type.startsWith("image/")) {
+      alert(t({ th: "กรุณาเลือกไฟล์รูปภาพ", en: "Please select an image file" }));
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const base64 = event.target?.result as string;
+        const res = await fetch("/api/profile/avatar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ avatarUrl: base64 }),
+        });
+
+        if (res.ok) {
+          setAvatarUrl(base64);
+        } else {
+          const data = await res.json();
+          alert(data.error || "Upload failed");
+        }
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      setUploading(false);
+      alert("Upload failed");
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    setUploading(true);
+    try {
+      const res = await fetch("/api/profile/avatar", { method: "DELETE" });
+      if (res.ok) {
+        setAvatarUrl(null);
+      }
+    } catch {
+      alert("Failed to remove avatar");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleFrameAction = async (frameKey: string, action: "equip" | "buy") => {
+    setFrameAction(frameKey);
+    try {
+      const res = await fetch("/api/profile/frame", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ frameKey, action }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setCurrentFrame(data.currentFrame);
+        setPreviewFrame(null);
+        // Refresh frames data
+        const framesRes = await fetch("/api/profile/frame");
+        if (framesRes.ok) {
+          setFramesData(await framesRes.json());
+        }
+        // Refresh stats if points were spent
+        if (action === "buy") {
+          const statsRes = await fetch("/api/gamification/stats");
+          if (statsRes.ok) setStats(await statsRes.json());
+        }
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed");
+      }
+    } catch {
+      alert("Failed");
+    } finally {
+      setFrameAction(null);
     }
   };
 
@@ -119,6 +252,12 @@ export default function ProfilePage() {
     });
   };
 
+  const displayFrame = previewFrame || currentFrame;
+
+  const filteredFrames = framesData?.frames.filter(
+    (f) => f.category === frameTab
+  ) ?? [];
+
   if (loading) {
     return (
       <AuthGuard>
@@ -140,11 +279,57 @@ export default function ProfilePage() {
           {/* Profile Header */}
           <div className="bg-gradient-to-br from-[#1a1a2e] to-[#16213e] border border-[#1A1A1A] rounded-2xl p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-5">
+              {/* Avatar with upload */}
+              <div className="relative group">
+                <button
+                  onClick={handleAvatarClick}
+                  className="relative cursor-pointer"
+                  disabled={uploading}
+                >
+                  <Avatar
+                    avatarUrl={avatarUrl}
+                    name={user?.name}
+                    frameKey={displayFrame}
+                    size="xl"
+                    showFrame={true}
+                  />
+                  <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    {uploading ? (
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                    ) : (
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    )}
+                  </div>
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+                {avatarUrl && (
+                  <button
+                    onClick={handleRemoveAvatar}
+                    className="absolute -bottom-1 -right-1 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transition"
+                    title={t({ th: "ลบรูปโปรไฟล์", en: "Remove avatar" })}
+                  >
+                    x
+                  </button>
+                )}
+              </div>
+
               <div className="flex-1 min-w-0">
                 <h1 className="text-2xl font-bold truncate">
                   {user?.name || t({ th: "ผู้ใช้", en: "User" })}
                 </h1>
                 <p className="text-sm text-gray-400 truncate">{user?.email}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {t({ th: "คลิกที่รูปเพื่อเปลี่ยนรูปโปรไฟล์", en: "Click avatar to change profile picture" })}
+                </p>
               </div>
               {stats && (
                 <RankBadge lifetimePoints={stats.lifetimePoints} size="lg" />
@@ -180,10 +365,131 @@ export default function ProfilePage() {
                   {t({ th: "สมาชิกตั้งแต่", en: "Member since" })}:{" "}
                   {user?.id
                     ? formatDate(new Date().toISOString())
-                    : "—"}
+                    : "---"}
                 </p>
               </div>
             )}
+          </div>
+
+          {/* Avatar Frame Selector */}
+          <div className="bg-[#111111] border border-[#1A1A1A] rounded-2xl p-6 mb-6">
+            <h2 className="text-xl font-bold mb-4">
+              {t({ th: "กรอบโปรไฟล์", en: "Avatar Frames" })}
+            </h2>
+
+            {/* Frame Preview */}
+            <div className="flex items-center justify-center mb-6">
+              <div className="text-center">
+                <Avatar
+                  avatarUrl={avatarUrl}
+                  name={user?.name}
+                  frameKey={displayFrame}
+                  size="xl"
+                  showFrame={true}
+                />
+                <p className="text-sm text-gray-400 mt-2">
+                  {t({ th: "ตัวอย่าง", en: "Preview" })}
+                </p>
+              </div>
+            </div>
+
+            {/* Frame Category Tabs */}
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => setFrameTab("free")}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  frameTab === "free"
+                    ? "bg-orange-500 text-white"
+                    : "bg-[#1A1A1A] text-gray-400 hover:text-white hover:bg-[#222]"
+                }`}
+              >
+                {t({ th: "ฟรี", en: "Free" })} ({framesData?.frames.filter(f => f.category === "free").length ?? 0})
+              </button>
+              <button
+                onClick={() => setFrameTab("premium")}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  frameTab === "premium"
+                    ? "bg-orange-500 text-white"
+                    : "bg-[#1A1A1A] text-gray-400 hover:text-white hover:bg-[#222]"
+                }`}
+              >
+                {t({ th: "พรีเมียม", en: "Premium" })} ({framesData?.frames.filter(f => f.category === "premium").length ?? 0})
+              </button>
+            </div>
+
+            {/* Current points */}
+            {frameTab === "premium" && stats && (
+              <div className="mb-4 text-sm text-gray-400">
+                {t({ th: "Points ที่ใช้ได้:", en: "Available Points:" })}{" "}
+                <span className="text-yellow-400 font-semibold">{stats.points.toLocaleString()} pts</span>
+              </div>
+            )}
+
+            {/* Frame Grid */}
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+              {filteredFrames.map((frame) => {
+                const isEquipped = currentFrame === frame.key;
+                const isPreviewing = previewFrame === frame.key;
+
+                return (
+                  <div
+                    key={frame.key}
+                    className={`relative rounded-xl p-3 text-center transition-all cursor-pointer ${
+                      isEquipped
+                        ? "bg-orange-500/10 border-2 border-orange-500"
+                        : isPreviewing
+                        ? "bg-blue-500/10 border-2 border-blue-500/50"
+                        : "bg-[#1A1A1A] border border-[#222] hover:border-[#444]"
+                    }`}
+                    onMouseEnter={() => setPreviewFrame(frame.key)}
+                    onMouseLeave={() => setPreviewFrame(null)}
+                  >
+                    {/* Mini avatar preview */}
+                    <div className="flex justify-center mb-2">
+                      <Avatar
+                        avatarUrl={avatarUrl}
+                        name={user?.name}
+                        frameKey={frame.key}
+                        size="md"
+                        showFrame={true}
+                      />
+                    </div>
+
+                    {/* Frame name */}
+                    <div className="text-xs font-medium text-white truncate">
+                      {t({ th: frame.nameTh, en: frame.nameEn })}
+                    </div>
+
+                    {/* Cost or status */}
+                    {isEquipped ? (
+                      <div className="text-xs text-orange-400 mt-1">
+                        {t({ th: "ใช้อยู่", en: "Equipped" })}
+                      </div>
+                    ) : frame.owned ? (
+                      <button
+                        onClick={() => handleFrameAction(frame.key, "equip")}
+                        disabled={frameAction === frame.key}
+                        className="text-xs text-green-400 hover:text-green-300 mt-1 transition"
+                      >
+                        {frameAction === frame.key
+                          ? "..."
+                          : t({ th: "ใช้งาน", en: "Equip" })}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleFrameAction(frame.key, "buy")}
+                        disabled={frameAction === frame.key}
+                        className="text-xs text-yellow-400 hover:text-yellow-300 mt-1 transition"
+                      >
+                        {frameAction === frame.key
+                          ? "..."
+                          : `${frame.pointsCost.toLocaleString()} pts`}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Stats Grid */}
