@@ -29,7 +29,7 @@ export async function GET() {
 
     const requests = pending.map((f) => ({
       friendshipId: f.id,
-      sender: f.user,
+      user: f.user,
       createdAt: f.createdAt,
     }));
 
